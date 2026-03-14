@@ -1,99 +1,225 @@
-<div class="space-y-5 animate-in fade-in duration-500">
+<div class="space-y-6 animate-in fade-in duration-500 pb-16">
     
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-indigo-200 transition-all">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Revenue</p>
-                    <h3 class="text-lg font-bold text-slate-900 leading-none mt-0.5">₹4,82,000</h3>
-                </div>
-            </div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-5">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                {{ $isDriver ? 'Driver Dashboard' : 'Command Center' }}
+            </h2>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Performance & Analytics</p>
         </div>
 
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-emerald-200 transition-all">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                </div>
-                <div class="flex-1">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fleet Status</p>
-                    <div class="flex items-center justify-between mt-0.5">
-                        <h3 class="text-lg font-bold text-slate-900">18/24</h3>
-                        <span class="text-[9px] font-bold text-emerald-600">75%</span>
-                    </div>
-                </div>
+        <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase mr-2">From</span>
+                <input type="date" wire:model.live="date_from" class="bg-transparent text-xs font-bold text-slate-700 outline-none">
             </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-amber-200 transition-all">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Dues</p>
-                    <h3 class="text-lg font-bold text-slate-900 mt-0.5">₹64,250</h3>
-                </div>
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase mr-2">To</span>
+                <input type="date" wire:model.live="date_to" class="bg-transparent text-xs font-bold text-slate-700 outline-none">
             </div>
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                <select wire:model.live="status_filter" class="bg-transparent text-xs font-bold text-slate-700 outline-none uppercase">
+                    <option value="">All Statuses</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="in_transit">In Transit</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <button wire:click="resetFilters" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold uppercase transition-colors">
+                Reset
+            </button>
         </div>
-
-        <button class="bg-slate-900 hover:bg-black text-white p-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group">
-            <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-            <span class="text-xs font-bold uppercase tracking-widest">New Trip</span>
-        </button>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-            <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Live Trip Feed</h4>
-            <div class="flex gap-2">
-                <button class="px-3 py-1 text-[10px] font-bold bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Filter</button>
-                <button class="px-3 py-1 text-[10px] font-bold bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Export</button>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <div class="bg-white p-5 rounded-2xl border-b-4 border-indigo-500 shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Total Revenue</p>
+                <h3 class="text-2xl font-black text-slate-900">RS {{ number_format($totalRevenue) }}</h3>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="bg-slate-50/50">
-                        <th class="px-4 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Truck Info</th>
-                        <th class="px-4 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Route</th>
-                        <th class="px-4 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
-                        <th class="px-4 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">Profit</th>
-                        <th class="px-4 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center text-[8px] font-bold text-white italic">Z-1</div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-900 uppercase leading-none">HR-55-AS-9022</p>
-                                    <p class="text-[9px] text-slate-400 mt-1 font-medium italic">Trip #2045</p>
-                                </div>
+
+        <div class="bg-white p-5 rounded-2xl border-b-4 border-rose-500 shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Total Expenses</p>
+                <h3 class="text-2xl font-black text-slate-900">RS {{ number_format($totalExpenses) }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 p-5 rounded-2xl shadow-xl relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Net Profitability</p>
+                <h3 class="text-2xl font-black {{ $netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                    RS {{ number_format($netProfit) }}
+                </h3>
+            </div>
+        </div>
+
+        @if($isOwner)
+        <div class="bg-white p-5 rounded-2xl border-b-4 border-amber-500 shadow-sm">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">On-Road Fleet</p>
+            <div class="flex items-end justify-between">
+                <h3 class="text-2xl font-black text-slate-900">{{ $onRoadVehicles }} <span class="text-sm text-slate-400">/ {{ $totalVehicles }}</span></h3>
+                <span class="text-xs font-black text-amber-600">{{ $fleetPercentage }}%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div class="bg-amber-500 h-full" style="width: {{ $fleetPercentage }}%"></div>
+            </div>
+        </div>
+        @else
+        <div class="bg-emerald-500 p-5 rounded-2xl shadow-xl text-white">
+            <p class="text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest mb-1">Driver Performance</p>
+            <h3 class="text-xl font-black">Active Trips: {{ count($liveTrips) }}</h3>
+            <p class="text-xs font-bold text-emerald-100 mt-2">Keep up the safe driving!</p>
+        </div>
+        @endif
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">15-Day Logistics Trend</h3>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-500"></span><span class="text-[10px] font-bold text-slate-500 uppercase">Freight</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span><span class="text-[10px] font-bold text-slate-500 uppercase">Recovery</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-400"></span><span class="text-[10px] font-bold text-slate-500 uppercase">Expense</span></div>
+                </div>
+            </div>
+            
+            <div wire:ignore class="relative h-64 w-full">
+                <canvas id="analyticsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                    </span>
+                    Live Trip Feed
+                </h4>
+                <a href="{{ route('admin.trips') }}" wire:navigate class="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest">View All</a>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-3 space-y-2 max-h-64 no-scrollbar">
+                @forelse($liveTrips as $trip)
+                    <div class="bg-white border border-slate-100 p-3 rounded-xl hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] font-extrabold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded uppercase">T-{{ $trip->id }}</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">{{ str_replace('_', ' ', $trip->status) }}</span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-xs font-black text-slate-800 uppercase">{{ $trip->from_location }} <span class="text-indigo-400 px-1">→</span> {{ $trip->to_location }}</p>
+                                <p class="text-[10px] font-bold text-slate-500 mt-0.5">{{ $trip->vehicle->truck_number ?? 'N/A' }} | Dr: {{ explode(' ', $trip->driver->name ?? '')[0] }}</p>
                             </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <p class="text-[10px] font-bold text-slate-700">INDORE <span class="text-indigo-400 mx-1">→</span> MUMBAI</p>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-md text-[8px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase tracking-wider">In Transit</span>
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            <p class="text-xs font-bold text-slate-900 tracking-tighter">₹14,500</p>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button class="p-1.5 hover:bg-slate-100 rounded-md transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            <div class="text-right">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">Net Bal</p>
+                                <p class="text-sm font-black {{ $trip->current_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">RS {{ number_format($trip->current_profit) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="h-full flex flex-col items-center justify-center text-center p-6 opacity-50">
+                        <svg class="w-10 h-10 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">No Active Trips</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        let chartInstance = null;
+
+        const renderChart = () => {
+            const ctx = document.getElementById('analyticsChart');
+            if(!ctx) return;
+
+            if(chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: @json($chartLabels),
+                    datasets: [
+                        {
+                            label: 'Freight (Bhaada)',
+                            data: @json($chartFreight),
+                            borderColor: '#6366f1', // Indigo
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Recovery (Aamad)',
+                            data: @json($chartRecovery),
+                            borderColor: '#34d399', // Emerald
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Expenses (Kharcha)',
+                            data: @json($chartExpense),
+                            borderColor: '#fb7185', // Rose
+                            borderWidth: 3,
+                            borderDash: [3, 3],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 9, family: 'sans-serif', weight: 'bold' } } },
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9' }, 
+                            ticks: { 
+                                font: { size: 9, weight: 'bold' },
+                                // ✅ BUG FIXED: Y-Axis now properly handles '0'
+                                callback: function(value) { 
+                                    if (value === 0) return 'RS 0';
+                                    return value >= 1000 ? 'RS ' + (value / 1000) + 'k' : 'RS ' + value; 
+                                }
+                            } 
+                        }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
+        };
+
+        // Render on initial load
+        renderChart();
+
+        // Re-render when Livewire updates the filters
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            renderChart();
+        });
+    });
+</script>
