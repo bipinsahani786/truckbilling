@@ -1,0 +1,44 @@
+/* resources/css/animations.css */
+
+/* Simple Fade-In */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide-In from Left */
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Slide-In from Right */
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Rotate-In */
+@keyframes rotateIn {
+    from { opacity: 0; transform: rotate(-5deg); }
+    to { opacity: 1; transform: rotate(0); }
+}
+
+/* Custom Animation Classes */
+.animate-fade-in { animation: fadeIn 0.8s ease-out forwards; opacity: 0; }
+.animate-slide-left { animation: slideInLeft 0.8s ease-out forwards; opacity: 0; }
+.animate-slide-right { animation: slideInRight 0.8s ease-out forwards; opacity: 0; }
+.animate-rotate-in { animation: rotateIn 0.8s ease-out forwards; opacity: 0; }
+
+/* Delay Utility Classes */
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-600 { animation-delay: 600ms; }
+
+/* Scale on Hover */
+.hover-scale { transition: transform 0.3s ease-in-out; }
+.hover-scale:hover { transform: scale(1.05); }
+
+/* Rotate Slightly on Hover */
+.hover-rotate { transition: transform 0.3s ease-in-out; }
+.hover-rotate:hover { transform: rotate(2deg); }
