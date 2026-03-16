@@ -37,13 +37,19 @@ class DriverService
      *
      * @param array $data    Driver details (name, mobile_number, email, password, etc.)
      * @param int   $ownerId The fleet owner's user ID who is registering this driver
+     * @param \Illuminate\Http\UploadedFile|null $licenseDocument Optional license document file
+     * @param \Illuminate\Http\UploadedFile|null $aadharDocument Optional aadhar document file
      * @return User The newly created driver user instance
      */
-    public function createDriver(array $data, int $ownerId): User
+    public function createDriver(array $data, int $ownerId, $licenseDocument = null, $aadharDocument = null): User
     {
         $driver = null;
 
-        DB::transaction(function () use ($data, $ownerId, &$driver) {
+        DB::transaction(function () use ($data, $ownerId, &$driver, $licenseDocument, $aadharDocument) {
+            // Handle document uploads
+            $licensePath = $licenseDocument ? $licenseDocument->store('documents/licenses', 'public') : null;
+            $aadharPath = $aadharDocument ? $aadharDocument->store('documents/aadhar', 'public') : null;
+
             // Create the user record (password is auto-hashed by User model's 'hashed' cast)
             $driver = User::create([
                 'owner_id' => $ownerId,
@@ -55,6 +61,8 @@ class DriverService
                 'blood_group' => $data['blood_group'] ?? null,
                 'aadhar_number' => $data['aadhar_number'] ?? null,
                 'license_number' => $data['license_number'] ?? null,
+                'license_document_path' => $licensePath,
+                'aadhar_document_path' => $aadharPath,
             ]);
 
             // Assign the 'driver' role via Spatie for role-based access control

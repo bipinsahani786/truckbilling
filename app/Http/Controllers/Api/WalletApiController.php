@@ -87,12 +87,15 @@ class WalletApiController extends BaseController
         }
 
         try {
-            $wallet = $this->walletService->addFunds(
-                $request->driver_id,
-                $request->amount,
-                $request->remarks
+            $wallet = Wallet::where('driver_id', (int)$request->driver_id)->firstOrFail();
+            $this->walletService->addFunds(
+                $wallet->id,
+                (float)$request->amount,
+                $request->remarks ?? 'Funds added via API'
             );
-            return $this->sendResponse($wallet, 'Funds added successfully.');
+            return $this->sendResponse($wallet->fresh(), 'Funds added successfully.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->sendError('Wallet not found for this driver.', [], 404);
         } catch (\InvalidArgumentException $e) {
              return $this->sendError('Failed to add funds', ['error' => $e->getMessage()], 400);
         }

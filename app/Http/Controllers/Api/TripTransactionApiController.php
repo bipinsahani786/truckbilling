@@ -77,7 +77,59 @@ class TripTransactionApiController extends BaseController
             $tx = $this->txService->createOrUpdate($data, null, $trip->driver_id, $trip->id);
             return $this->sendResponse($tx, 'Transaction added successfully.', 201);
         } catch (\Exception $e) {
-            return $this->sendError('Failed to add transaction', ['error' => $e->getMessage()], 400); // 400 for bad request
+            return $this->sendError('Failed to add transaction', ['error' => $e->getMessage()], 400); 
+        }
+    }
+
+    #[OA\Put(
+        path: '/api/transactions/{id}',
+        tags: ['Trip Transactions'],
+        summary: 'Update a transaction',
+        description: 'Updates an existing transaction and adjusts wallets by reversing the old value and applying the new one.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['amount', 'expense_category_id'],
+                properties: [
+                    new OA\Property(property: 'expense_category_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'amount', type: 'number', example: 600.00),
+                    new OA\Property(property: 'remarks', type: 'string', example: 'Updated toll tax')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Transaction updated successfully')
+        ]
+    )]
+    public function update(Request $request, $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'expense_category_id' => 'required|exists:expense_categories,id',
+            'amount' => 'required|numeric|min:1',
+            'remarks' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        $tx = TripTransaction::with('trip')->findOrFail($id);
+        $user = $request->user();
+
+        // Security: drivers can only edit their own trip transactions
+        if ($user->hasRole('driver') && $tx->trip->driver_id !== $user->id) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        try {
+            $tx = $this->txService->createOrUpdate($request->all(), $tx->id, $tx->trip->driver_id, $tx->trip_id);
+            return $this->sendResponse($tx, 'Transaction updated successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('Failed to update transaction', ['error' => $e->getMessage()], 400);
         }
     }
 

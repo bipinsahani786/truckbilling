@@ -56,17 +56,20 @@ class DriverApiController extends BaseController
         security: [['bearerAuth' => []]],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                required: ['name', 'mobile', 'password'],
-                properties: [
-                    new OA\Property(property: 'name', type: 'string', example: 'Driver John'),
-                    new OA\Property(property: 'mobile', type: 'string', example: '9876543210'),
-                    new OA\Property(property: 'email', type: 'string', example: 'driver@zytrixon.com', nullable: true),
-                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'password123'),
-                    new OA\Property(property: 'license_number', type: 'string', example: 'DL-123456789', nullable: true),
-                    new OA\Property(property: 'address', type: 'string', example: 'Delhi', nullable: true),
-                    new OA\Property(property: 'license_document', type: 'string', format: 'binary')
-                ]
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['name', 'mobile_number', 'password'],
+                    properties: [
+                        new OA\Property(property: 'name', type: 'string', example: 'Driver John'),
+                        new OA\Property(property: 'mobile_number', type: 'string', example: '9876543210'),
+                        new OA\Property(property: 'email', type: 'string', example: 'driver@zytrixon.com', nullable: true),
+                        new OA\Property(property: 'password', type: 'string', format: 'password', example: 'password123'),
+                        new OA\Property(property: 'license_number', type: 'string', example: 'DL-123456789', nullable: true),
+                        new OA\Property(property: 'address', type: 'string', example: 'Delhi', nullable: true),
+                        new OA\Property(property: 'license_document', type: 'string', format: 'binary')
+                    ]
+                )
             )
         ),
         responses: [
@@ -83,7 +86,7 @@ class DriverApiController extends BaseController
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'mobile' => 'required|string|max:15|unique:users',
+            'mobile_number' => 'required|unique:users,mobile_number',
             'email' => 'nullable|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'license_number' => 'nullable|string|max:50',
@@ -98,9 +101,7 @@ class DriverApiController extends BaseController
         $driver = $this->driverService->createDriver(
             $request->all(),
             $user->id,
-            $request->file('license_document'),
-            null,
-            null
+            $request->file('license_document')
         );
 
         return $this->sendResponse($driver, 'Driver created successfully.', 201);

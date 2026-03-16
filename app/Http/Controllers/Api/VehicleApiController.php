@@ -97,17 +97,20 @@ class VehicleApiController extends BaseController
         security: [['bearerAuth' => []]],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                required: ['truck_number', 'make', 'model', 'year', 'chassis_number', 'engine_number'],
-                properties: [
-                    new OA\Property(property: 'truck_number', type: 'string', example: 'MH-12-AB-1234'),
-                    new OA\Property(property: 'make', type: 'string', example: 'Tata'),
-                    new OA\Property(property: 'model', type: 'string', example: 'Signa'),
-                    new OA\Property(property: 'year', type: 'integer', example: 2021),
-                    new OA\Property(property: 'chassis_number', type: 'string', example: 'CH123456789'),
-                    new OA\Property(property: 'engine_number', type: 'string', example: 'EN123456789'),
-                    new OA\Property(property: 'rc_document', type: 'string', format: 'binary')
-                ]
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['truck_number', 'truck_type', 'chassis_number', 'engine_number'],
+                    properties: [
+                        new OA\Property(property: 'truck_number', type: 'string', example: 'MH-12-AB-1234'),
+                        new OA\Property(property: 'truck_type', type: 'string', example: 'Open Body'),
+                        new OA\Property(property: 'capacity_tons', type: 'number', example: 10.5, nullable: true),
+                        new OA\Property(property: 'rc_number', type: 'string', example: 'RC123456', nullable: true),
+                        new OA\Property(property: 'chassis_number', type: 'string', example: 'CH123456789'),
+                        new OA\Property(property: 'engine_number', type: 'string', example: 'EN123456789'),
+                        new OA\Property(property: 'rc_document', type: 'string', format: 'binary')
+                    ]
+                )
             )
         ),
         responses: [
@@ -124,9 +127,9 @@ class VehicleApiController extends BaseController
 
         $validator = Validator::make($request->all(), [
             'truck_number' => 'required|string|unique:vehicles',
-            'make' => 'required|string',
-            'model' => 'required|string',
-            'year' => 'required|integer',
+            'truck_type' => 'required|string',
+            'capacity_tons' => 'nullable|numeric',
+            'rc_number' => 'nullable|string',
             'chassis_number' => 'required|string|unique:vehicles',
             'engine_number' => 'required|string|unique:vehicles',
             'rc_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
@@ -136,13 +139,12 @@ class VehicleApiController extends BaseController
             return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
         }
 
+        $files = $request->hasFile('rc_document') ? ['rc_document' => $request->file('rc_document')] : null;
+
         $vehicle = $this->vehicleService->createOrUpdate(
             $request->all(),
-            null,
-            $user->id,
-            $request->file('rc_document'),
-            null,
-            null
+            $files,
+            $user->id
         );
 
         return $this->sendResponse($vehicle, 'Vehicle created successfully.', 201);

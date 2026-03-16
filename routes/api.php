@@ -11,9 +11,11 @@ use App\Http\Controllers\Api\DealerApiController;
 use App\Http\Controllers\Api\ExpenseCategoryApiController;
 use App\Http\Controllers\Api\WalletApiController;
 use App\Http\Controllers\Api\UserManagementApiController;
+use App\Http\Controllers\Api\TripBillingApiController;
 
 // Public Auth Routes
 Route::post('login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -33,7 +35,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- Trip Transactions ---
     Route::post('trips/{trip_id}/transactions', [TripTransactionApiController::class, 'store']);
+    Route::put('transactions/{id}', [TripTransactionApiController::class, 'update']);
     Route::delete('transactions/{id}', [TripTransactionApiController::class, 'destroy']);
+
+    // --- Trip Billings ---
+    Route::post('trips/{trip_id}/billings', [TripBillingApiController::class, 'store']);
+    Route::put('billings/{id}', [TripBillingApiController::class, 'update']);
+    Route::delete('billings/{id}', [TripBillingApiController::class, 'destroy']);
 
     // --- Owner Only: Vehicles & Drivers & Dealers ---
     Route::middleware('role:owner')->group(function () {

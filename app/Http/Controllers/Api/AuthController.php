@@ -85,6 +85,83 @@ class AuthController extends BaseController
         }
     }
 
+    #[OA\Post(
+        path: '/api/register',
+        tags: ['Authentication'],
+        summary: 'Register a new user (Fleet Owner)',
+        description: 'Create a new account and return an authentication token.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'email', 'password', 'mobile_number'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'john@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
+                    new OA\Property(property: 'mobile_number', type: 'string', example: '9876543210'),
+                    new OA\Property(property: 'company_name', type: 'string', example: 'Doe Logistics')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful registration',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'message', type: 'string', example: 'User registered successfully'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'token', type: 'string', example: '1|xxx'),
+                                new OA\Property(property: 'user_id', type: 'integer', example: 2),
+                                new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
+                                new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'))
+                            ]
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: 'Validation Error')
+        ]
+    )]
+    public function register(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'mobile_number' => 'required|string|max:15|unique:users',
+            'company_name' => 'nullable|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'mobile_number' => $request->mobile_number,
+            'company_name' => $request->company_name,
+        ]);
+
+        $user->assignRole('owner');
+
+        $token = $user->createToken('MobileAppToken')->plainTextToken;
+
+        $success['token'] = $token;
+        $success['user_id'] = $user->id;
+        $success['name'] = $user->name;
+        $success['email'] = $user->email;
+        $success['roles'] = $user->getRoleNames();
+
+        return $this->sendResponse($success, 'User registered successfully.');
+    }
+
     #[OA\Get(
         path: '/api/user',
         tags: ['Authentication'],

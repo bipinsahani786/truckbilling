@@ -53,11 +53,11 @@ class DealerApiController extends BaseController
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['company_name', 'contact_person', 'mobile_number'],
+                required: ['company_name', 'contact_person_name', 'mobile_number'],
                 properties: [
                     new OA\Property(property: 'company_name', type: 'string', example: 'ABC Logistics'),
-                    new OA\Property(property: 'contact_person', type: 'string', example: 'John Doe'),
-                    new OA\Property(property: 'mobile_number', type: 'string', example: '9876543210'),
+                    new OA\Property(property: 'contact_person_name', type: 'string', example: 'John Doe'),
+                    new OA\Property(property: 'phone_number', type: 'string', example: '9876543210'),
                     new OA\Property(property: 'email', type: 'string', example: 'john@abc.com', nullable: true),
                     new OA\Property(property: 'gstin', type: 'string', example: '22AAAAA0000A1Z5', nullable: true),
                     new OA\Property(property: 'pan_number', type: 'string', example: 'ABCDE1234F', nullable: true),
@@ -79,8 +79,8 @@ class DealerApiController extends BaseController
 
         $validator = Validator::make($request->all(), [
             'company_name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'mobile_number' => 'required|string|max:20',
+            'contact_person_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
             'gstin' => 'nullable|string|max:15|unique:dealers',
             'pan_number' => 'nullable|string|max:10|unique:dealers',
@@ -91,8 +91,9 @@ class DealerApiController extends BaseController
             return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
         }
 
+        // dd($request->all());
         try {
-            $dealer = $this->dealerService->createOrUpdate($request->all(), null, $user->id);
+            $dealer = $this->dealerService->createOrUpdate($request->all(), $user->id);
             return $this->sendResponse($dealer, 'Dealer created successfully.', 201);
         } catch (\InvalidArgumentException $e) {
             return $this->sendError('Failed to create dealer', ['error' => $e->getMessage()], 400);

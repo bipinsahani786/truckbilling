@@ -41,7 +41,8 @@ class ExpenseCategoryApiController extends BaseController
         $ownerId = $user->hasRole('owner') ? $user->id : null; 
         
         $categories = $this->categoryService->getFilteredCategories(
-            $ownerId,
+            $user->id,
+            $user->hasRole('super-admin'),
             $request->query('search')
         );
 
@@ -87,8 +88,8 @@ class ExpenseCategoryApiController extends BaseController
         try {
             $cat = $this->categoryService->createOrUpdate(
                 ['name' => $request->name],
-                null,
-                $ownerId
+                $user->id,
+                $user->hasRole('super-admin')
             );
             return $this->sendResponse($cat, 'Category created successfully.', 201);
         } catch (\InvalidArgumentException $e) {
@@ -118,7 +119,7 @@ class ExpenseCategoryApiController extends BaseController
         $ownerId = $user->hasRole('owner') ? $user->id : null;
 
         try {
-            $this->categoryService->delete($id, $ownerId);
+            $this->categoryService->delete($id, $user->id, $user->hasRole('super-admin'));
             return $this->sendResponse([], 'Category deleted successfully.');
         } catch (\InvalidArgumentException $e) {
             return $this->sendError('Failed to delete', ['error' => $e->getMessage()], 400);
