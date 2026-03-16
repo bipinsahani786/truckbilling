@@ -3,22 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
+/**
+ * ExpenseCategory Model
+ *
+ * Represents a category used to classify trip expenses (e.g., Diesel, Toll, Food).
+ * Categories can be either system-wide defaults (created by super-admin) or
+ * custom categories created by individual fleet owners.
+ *
+ * System default categories (is_system_default = true) are visible to all owners.
+ * Owner-specific categories are only visible to the owner who created them.
+ *
+ * @property int       $id
+ * @property int|null  $owner_id           The owner who created this category (null for system defaults)
+ * @property string    $name               Category display name (stored in uppercase)
+ * @property bool      $is_system_default  Whether this is a global system-wide category
+ */
 class ExpenseCategory extends Model
 {
+    /**
+     * The attributes that are mass assignable.
+     */
     protected $fillable = ['owner_id', 'name', 'is_system_default'];
-
-    // protected static function booted()
-    // {
-    //     // Fetch categories that belong to the owner OR are system defaults
-    //     static::addGlobalScope('owner_or_default', function (Builder $builder) {
-    //         if (Auth::check()) {
-    //             $ownerId = Auth::user()->owner_id ?? Auth::id();
-    //             $builder->where('owner_id', $ownerId)
-    //                     ->orWhereNull('owner_id');
-    //         }
-    //     });
-    // }
 }

@@ -5,64 +5,87 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\ExpenseCategory;
+use App\Services\ExpenseCategoryService;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * ExpenseCategoryManagement Livewire Component
+ *
+ * Manages expense categories with role-based access control:
+ * - Super-admin: Can manage system-wide default categories (visible to all owners)
+ * - Owner: Can manage their own custom categories (private to them)
+ *
+ * Business logic is delegated to ExpenseCategoryService.
+ * This component only handles UI state, validation, and flash messaging.
+ */
 class ExpenseCategoryManagement extends Component
 {
     use WithPagination;
 
+    // --- Search & Form Properties ---
+    /** @var string Search query for filtering categories by name */
     public $search = '';
+    /** @var int|null Category ID (set during edit mode) */
     public $category_id;
+    /** @var string Category name */
     public $name;
+    /** @var bool Whether the form is in edit mode */
     public $isEditMode = false;
 
+    /** Reset pagination when search query changes */
     public function updatedSearch()
     {
         $this->resetPage();
     }
 
+    /**
+     * Validate and save a new category or update an existing one.
+     *
+     * Super-admin created categories are marked as system defaults.
+     * Owner-created categories are private to that owner.
+     */
     public function saveCategory()
     {
         $this->validate([
             'name' => 'required|string|max:255',
         ]);
 
-        // Check if user is Superadmin
         $isSuperAdmin = Auth::user()->hasRole('super-admin');
 
-        $data = [
-            'name' => $this->name,
-            'owner_id' => Auth::id(),
-            // Agar superadmin hai toh system default true hoga
-            'is_system_default' => $isSuperAdmin ? true : false,
-        ];
+        try {
+            $categoryService = app(ExpenseCategoryService::class);
+            $categoryService->createOrUpdate(
+                ['name' => $this->name],
+                Auth::id(),
+                $isSuperAdmin,
+                $this->isEditMode ? $this->category_id : null
+            );
 
-        if ($this->isEditMode) {
-            // Edit Security: Superadmin sab kuch edit kar sakta hai, 
-            // Owner sirf apni banai hui (non-system) category.
-            $query = ExpenseCategory::query();
-            if (!$isSuperAdmin) {
-                $query->where('owner_id', Auth::id())->where('is_system_default', false);
+            if ($this->isEditMode) {
+                session()->flash('success', 'Category Updated!');
+            } else {
+                session()->flash('success', $isSuperAdmin ? 'Global System Category Added!' : 'New Expense Category Added!');
             }
 
-            $category = $query->findOrFail($this->category_id);
-            $category->update(['name' => $this->name]);
-            session()->flash('success', 'Category Updated!');
-        } else {
-            ExpenseCategory::create($data);
-            session()->flash('success', $isSuperAdmin ? 'Global System Category Added!' : 'New Expense Category Added!');
+            $this->resetForm();
+        } catch (\InvalidArgumentException $e) {
+            $this->addError('name', $e->getMessage());
         }
-
-        $this->resetForm();
     }
 
+    /**
+     * Populate the form with an existing category's data for editing.
+     * Normal owners cannot edit system default categories.
+     *
+     * @param int $id The category ID to edit
+     */
     public function editCategory($id)
     {
         $isSuperAdmin = Auth::user()->hasRole('super-admin');
         $query = ExpenseCategory::query();
 
+        // Normal owners can only edit their own non-system categories
         if (!$isSuperAdmin) {
-            // Normal Owner system default edit nahi kar sakta
             $query->where('owner_id', Auth::id())->where('is_system_default', false);
         }
 
@@ -72,61 +95,47 @@ class ExpenseCategoryManagement extends Component
         $this->isEditMode = true;
     }
 
+    /**
+     * Delete a category with role-based access control.
+     * System default categories cannot be deleted by normal owners.
+     *
+     * @param int $id The category ID to delete
+     */
     public function deleteCategory($id)
     {
         $isSuperAdmin = Auth::user()->hasRole('super-admin');
-        $category = ExpenseCategory::findOrFail($id);
 
-        // Security Check: System defaults cannot be deleted by normal owners
-        if (!$isSuperAdmin && $category->is_system_default) {
-            session()->flash('error', 'Action Denied: System default categories cannot be deleted.');
-            return;
+        try {
+            $categoryService = app(ExpenseCategoryService::class);
+            $categoryService->delete($id, Auth::id(), $isSuperAdmin);
+            session()->flash('success', 'Category Deleted!');
+        } catch (\InvalidArgumentException $e) {
+            session()->flash('error', $e->getMessage());
         }
-
-        // Agar owner hai toh sirf apni hi delete kar sake
-        if (!$isSuperAdmin && $category->owner_id !== Auth::id()) {
-            session()->flash('error', 'Unauthorized action.');
-            return;
-        }
-
-        $category->delete();
-        session()->flash('success', 'Category Deleted!');
     }
 
+    /**
+     * Reset the category form to its initial state.
+     */
     public function resetForm()
     {
         $this->reset(['category_id', 'name', 'isEditMode']);
         $this->resetValidation();
     }
 
+    /**
+     * Render the component view with paginated category list.
+     * System default categories appear at the top of the list.
+     */
     public function render()
     {
-        // 1. Fresh Query shuru karein
-        $query = ExpenseCategory::query();
+        $isSuperAdmin = Auth::user()->hasRole('super-admin');
+        $categoryService = app(ExpenseCategoryService::class);
 
-        // 2. Role Check
-        if (!Auth::user()->hasRole('super-admin')) {
-            // Normal Owner ke liye: (Meri ID wali OR Jo System Default ho)
-          
-            $query->where(function ($q) {
-                $q->where('owner_id', Auth::id())
-                    ->orWhere('is_system_default', 1); // 1 = true
-            });
-            // dd($query);
-        }
-
-        // 3. Search Filter
-        if (!empty($this->search)) {
-            $query->where('name', 'like', '%' . $this->search . '%');
-        }
-
-        // 4. Sorting: System Default hamesha top par (desc), fir latest
-        $categories = $query->orderBy('is_system_default', 'desc')
-            ->latest()
-            ->paginate(15);
+        $categories = $categoryService->getFilteredCategories(Auth::id(), $isSuperAdmin, $this->search);
 
         return view('livewire.admin.expense-category-management', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 }

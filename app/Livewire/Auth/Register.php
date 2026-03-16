@@ -23,13 +23,13 @@ class Register extends Component
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // 1. Create User
+        // 1. Create User (password auto-hashed by User model 'hashed' cast)
         $user = User::create([
             'name' => $this->name,
             'company_name' => $this->company_name,
             'mobile_number' => $this->mobile_number,
             'email' => $this->email,
-            'password' => Hash::make($this->password),
+            'password' => $this->password,
         ]);
 
         // 2. Assign Role (Spatie)

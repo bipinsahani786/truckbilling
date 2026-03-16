@@ -31,7 +31,7 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-                    <a href="#" class="text-sm font-semibold text-slate-500 hover:text-[#0A0A0A] transition-colors">Forgot password?</a>
+                    <a href="{{ route('password.request') }}" class="text-sm font-semibold text-slate-500 hover:text-[#0A0A0A] transition-colors" wire:navigate>Forgot password?</a>
                 </div>
                 <div>
                     <input wire:model="password" id="password" type="password" required

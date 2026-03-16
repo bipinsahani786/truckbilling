@@ -1,0 +1,63 @@
+﻿
+  GET|HEAD  / ........ 
+  GET|HEAD  admin/dealers admin.dealers ΓÇ║ App\Livewire\Admin\DealerManagΓÇª
+  GET|HEAD  admin/drivers admin.drivers ΓÇ║ App\Livewire\Admin\DriverManagΓÇª
+  GET|HEAD  admin/expenses/categories admin.expense.categories ΓÇ║ App\Livewire\Admin\ExpenseCΓÇª
+  GET|HEAD  admin/fleet admin.vehicles ΓÇ║ App\Livewire\Admin\VehicleManagemΓÇª
+  GET|HEAD  admin/trips admin.trips ΓÇ║ App\Livewire\Admin\TripManagemΓÇª
+  GET|HEAD  api/user . 
+  GET|HEAD  dashboard dashboard ΓÇ║ App\Livewire\Admin\DashboarΓÇª
+  GET|HEAD  driver/my-documents driver.documents ΓÇ║ App\Livewire\Driver\DrivΓÇª
+  GET|HEAD  driver/trips driver.trips ΓÇ║ App\Livewire\Admin\TripManageΓÇª
+  POST      email/verification-notification verification.send ΓÇ║ Laravel\Fortify ΓÇ║ EmailVerificationNotifΓÇª
+  GET|HEAD  email/verify verification.notice ΓÇ║ Laravel\Fortify ΓÇ║ EmailVerificationPromptController@__inΓÇª
+  GET|HEAD  email/verify/{id}/{hash} verification.verify ΓÇ║ Laravel\Fortify ΓÇ║ VerifyEmailConΓÇª
+  GET|HEAD  flux/editor.css Flux\AssetManager@editorCss ΓÇ║ AssetManager@edΓÇª
+  GET|HEAD  flux/editor.js Flux\AssetManager@editorJs ΓÇ║ AssetManager@edΓÇª
+  GET|HEAD  flux/editor.min.js Flux\AssetManager@editorMinJs ΓÇ║ AssetManager@eΓÇª
+  GET|HEAD  flux/flux.js Flux\AssetManager@fluxJs ΓÇ║ AssetManager@flΓÇª
+  GET|HEAD  flux/flux.min.js Flux\AssetManager@fluxMinJs ΓÇ║ AssetManager@fΓÇª
+  GET|HEAD  forgot-password password.request ΓÇ║ Laravel\Fortify ΓÇ║ PasswordResetLinkControllerΓÇª
+  POST      forgot-password password.email ΓÇ║ Laravel\Fortify ΓÇ║ PasswordResetLinkControlleΓÇª
+  GET|HEAD  livewire-ac538519/css/{component}.css 
+  GET|HEAD  livewire-ac538519/css/{component}.global.css 
+  GET|HEAD  livewire-ac538519/js/{component}.js 
+  GET|HEAD  livewire-ac538519/livewire.csp.min.js.map Livewire\MeΓÇª
+  GET|HEAD  livewire-ac538519/livewire.js Livewire\Mechanisms ΓÇ║ FrontendAssets@rΓÇª
+  GET|HEAD  livewire-ac538519/livewire.min.js.map Livewire\MecΓÇª
+  GET|HEAD  livewire-ac538519/preview-file/{filename} livewire.preview-file ΓÇ║ Livewire\FeaturΓÇª
+  POST      livewire-ac538519/update default-livewire.update ΓÇ║ Livewire\Mechanisms ΓÇ║ HandleRequeΓÇª
+  POST      livewire-ac538519/upload-file livewire.upload-file ΓÇ║ Livewire\Features ΓÇ║ FileUpΓÇª
+  GET|HEAD  login logΓÇª
+  POST      login logΓÇª
+  POST      logout loΓÇª
+  GET|HEAD  profile pΓÇª
+  GET|HEAD  register ΓÇª
+  POST      register ΓÇª
+  POST      reset-password password.update ΓÇ║ Laravel\Fortify ΓÇ║ NewPasswordControllerΓÇª
+  GET|HEAD  reset-password/{token} password.reset ΓÇ║ Laravel\Fortify ΓÇ║ NewPasswordConΓÇª
+  GET|HEAD  sanctum/csrf-cookie sanctum.csrf-cookie ΓÇ║ Laravel\Sanctum ΓÇ║ CsrfCookieContΓÇª
+  ANY       settings ΓÇª
+  GET|HEAD  settings/appearance appearance.edit ΓÇ║ Livewire\Mechanisms ΓÇ║ LivewirePagΓÇª
+  GET|HEAD  settings/profile profile.edit ΓÇ║ Livewire\Mechanisms ΓÇ║ LivewirePageCoΓÇª
+  GET|HEAD  settings/security security.edit ΓÇ║ Livewire\Mechanisms ΓÇ║ LivewirePageCΓÇª
+  GET|HEAD  storage/{path} storageΓÇª
+  PUT       storage/{path} storage.local.ΓÇª
+  GET|HEAD  superadmin/expenses/categories superadmin.expense.categories ΓÇ║ App\Livewire\Admin\ExpΓÇª
+  GET|HEAD  superadmin/users admin.users ΓÇ║ App\Livewire\Admin\UserMaΓÇª
+  GET|HEAD  two-factor-challenge two-factor.login ΓÇ║ Laravel\Fortify ΓÇ║ TwoFactorAuthenticatedSessionContrΓÇª
+  POST      two-factor-challenge two-factor.login.store ΓÇ║ Laravel\Fortify ΓÇ║ TwoFactorAuthenticatedSessionContΓÇª
+  GET|HEAD  up ....... 
+  GET|HEAD  user/confirm-password password.confirm ΓÇ║ Laravel\Fortify ΓÇ║ ConfirmablePasswordCoΓÇª
+  POST      user/confirm-password password.confirm.store ΓÇ║ Laravel\Fortify ΓÇ║ ConfirmablePasswordConΓÇª
+  GET|HEAD  user/confirmed-password-status password.confirmation ΓÇ║ Laravel\Fortify ΓÇ║ ConfirmedPassworΓÇª
+  POST      user/confirmed-two-factor-authentication two-factor.confirm ΓÇ║ Laravel\Fortify ΓÇ║ ConfirmedTwoFactΓÇª
+  POST      user/two-factor-authentication two-factor.enable ΓÇ║ Laravel\Fortify ΓÇ║ TwoFactorAuthentiΓÇª
+  DELETE    user/two-factor-authentication two-factor.disable ΓÇ║ Laravel\Fortify ΓÇ║ TwoFactorAuthenticaΓÇª
+  GET|HEAD  user/two-factor-qr-code two-factor.qr-code ΓÇ║ Laravel\Fortify ΓÇ║ TwoFactorQrCodeΓÇª
+  GET|HEAD  user/two-factor-recovery-codes two-factor.recovery-codes ΓÇ║ Laravel\Fortify ΓÇ║ RecoveΓÇª
+  POST      user/two-factor-recovery-codes two-factor.regenerate-recovery-codes ΓÇ║ Laravel\Fortify ΓÇ║ RecoveΓÇª
+  GET|HEAD  user/two-factor-secret-key two-factor.secret-key ΓÇ║ Laravel\Fortify ΓÇ║ TwoFactorSecretΓÇª
+
+   Showing [59] routes
+

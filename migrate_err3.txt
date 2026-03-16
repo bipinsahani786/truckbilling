@@ -1,0 +1,26 @@
+﻿
+   INFO  Running migrations.  
+
+  2026_03_16_050000_add_missing_unique_constraints  18.29ms FAIL
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[HY000]: General error: 1553 Cannot drop index 'wallets_driver_id_unique': needed in a foreign key constraint (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: laravel, SQL: alter table `wallets` drop index `wallets_driver_id_unique`)
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834Γûò             $exceptionType = $this->isUniqueConstraintError($e)
+    835Γûò                 ? UniqueConstraintViolationException::class
+    836Γûò                 : QueryException::class;
+    837Γûò 
+  Γ₧£ 838Γûò             throw new $exceptionType(
+    839Γûò                 $this->getNameWithReadWriteType(),
+    840Γûò                 $query,
+    841Γûò                 $this->prepareBindings($bindings),
+    842Γûò                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:584
+      PDOException::("SQLSTATE[HY000]: General error: 1553 Cannot drop index 'wallets_driver_id_unique': needed in a foreign key constraint")
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:584
+      PDOStatement::execute()
+

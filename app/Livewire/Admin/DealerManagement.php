@@ -5,44 +5,94 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Dealer;
+use App\Services\DealerService;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * DealerManagement Livewire Component
+ *
+ * Manages the dealer/party directory: listing, creation, and editing.
+ * Dealers are business parties who book freight trips.
+ *
+ * Business logic is delegated to DealerService.
+ * This component only handles UI state, validation, and flash messaging.
+ */
 class DealerManagement extends Component
 {
     use WithPagination;
 
+    // --- Search Property ---
+    /** @var string Search query for filtering by company name, contact, phone, or city */
     public $search = '';
-    
-    // Form Inputs
+
+    // --- Dealer Form Properties ---
+    /** @var int|null Dealer ID (set during edit mode) */
     public $dealer_id;
-    public $company_name, $contact_person_name;
-    public $gstin, $pan_number;
-    public $phone_number, $alternate_phone, $email;
-    public $billing_address, $city, $state, $pincode;
-    
+    /** @var string Dealer's company/business name */
+    public $company_name;
+    /** @var string|null Name of the primary contact person */
+    public $contact_person_name;
+    /** @var string|null 15-character GSTIN number */
+    public $gstin;
+    /** @var string|null 10-character PAN number */
+    public $pan_number;
+    /** @var string|null Primary phone number */
+    public $phone_number;
+    /** @var string|null Alternate/secondary phone number */
+    public $alternate_phone;
+    /** @var string|null Email address */
+    public $email;
+    /** @var string|null Full billing address */
+    public $billing_address;
+    /** @var string|null City name */
+    public $city;
+    /** @var string|null State name */
+    public $state;
+    /** @var string|null 6-digit postal/PIN code */
+    public $pincode;
+
+    /** @var bool Whether the form is in edit mode */
     public $isEditMode = false;
 
+    /** Reset pagination when search query changes */
     public function updatedSearch()
     {
         $this->resetPage();
     }
 
+    /**
+     * Validate form inputs and save the dealer via DealerService.
+     * Handles both new registration and editing of existing dealers.
+     */
     public function saveDealer()
     {
+        // Build validation rules with GSTIN and PAN regex patterns
+        $uniqueGstin = 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/|unique:dealers,gstin';
+        $uniquePan = 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/|unique:dealers,pan_number';
+        $uniquePhone = 'nullable|string|max:15';
+        $uniqueEmail = 'nullable|email';
+
+        // Exclude current record from unique checks during edit
+        if ($this->isEditMode) {
+            $uniqueGstin .= ',' . $this->dealer_id;
+            $uniquePan .= ',' . $this->dealer_id;
+        }
+
         $this->validate([
             'company_name' => 'required|string|max:255',
-            'phone_number' => 'nullable|string|max:20',
-            'email' => 'nullable|email',
-            'gstin' => 'nullable|string|max:15',
-            'pan_number' => 'nullable|string|max:10',
+            'phone_number' => $uniquePhone,
+            'email' => $uniqueEmail,
+            'gstin' => $uniqueGstin,
+            'pan_number' => $uniquePan,
+            'pincode' => 'nullable|digits:6',
         ]);
 
-        $data = [
-            'owner_id' => Auth::id(),
+        $dealerService = app(DealerService::class);
+        $dealerService->createOrUpdate([
             'company_name' => $this->company_name,
             'contact_person_name' => $this->contact_person_name,
-            'gstin' => strtoupper($this->gstin),
-            'pan_number' => strtoupper($this->pan_number),
+            'gstin' => $this->gstin,
+            'pan_number' => $this->pan_number,
             'phone_number' => $this->phone_number,
             'alternate_phone' => $this->alternate_phone,
             'email' => $this->email,
@@ -50,23 +100,26 @@ class DealerManagement extends Component
             'city' => $this->city,
             'state' => $this->state,
             'pincode' => $this->pincode,
-        ];
+        ], Auth::id(), $this->isEditMode ? $this->dealer_id : null);
 
         if ($this->isEditMode) {
-            Dealer::where('owner_id', Auth::id())->findOrFail($this->dealer_id)->update($data);
             session()->flash('success', 'Dealer updated successfully!');
         } else {
-            Dealer::create($data);
             session()->flash('success', 'New Dealer added successfully!');
         }
 
         $this->resetForm();
     }
 
+    /**
+     * Populate the form with an existing dealer's data for editing.
+     *
+     * @param int $id The dealer ID to edit
+     */
     public function editDealer($id)
     {
         $dealer = Dealer::where('owner_id', Auth::id())->findOrFail($id);
-        
+
         $this->dealer_id = $dealer->id;
         $this->company_name = $dealer->company_name;
         $this->contact_person_name = $dealer->contact_person_name;
@@ -79,37 +132,33 @@ class DealerManagement extends Component
         $this->city = $dealer->city;
         $this->state = $dealer->state;
         $this->pincode = $dealer->pincode;
-        
+
         $this->isEditMode = true;
     }
 
+    /**
+     * Reset the dealer form to its initial state.
+     */
     public function resetForm()
     {
         $this->reset([
             'dealer_id', 'company_name', 'contact_person_name', 'gstin', 'pan_number',
-            'phone_number', 'alternate_phone', 'email', 'billing_address', 
-            'city', 'state', 'pincode', 'isEditMode'
+            'phone_number', 'alternate_phone', 'email', 'billing_address',
+            'city', 'state', 'pincode', 'isEditMode',
         ]);
         $this->resetValidation();
     }
 
+    /**
+     * Render the component view with paginated dealer list.
+     */
     public function render()
     {
-        $query = Dealer::where('owner_id', Auth::id());
-
-        if (!empty($this->search)) {
-            $query->where(function($q) {
-                $q->where('company_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('contact_person_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('phone_number', 'like', '%' . $this->search . '%')
-                  ->orWhere('city', 'like', '%' . $this->search . '%');
-            });
-        }
-
-        $dealers = $query->latest()->paginate(10);
+        $dealerService = app(DealerService::class);
+        $dealers = $dealerService->getFilteredDealers(Auth::id(), $this->search);
 
         return view('livewire.admin.dealer-management', [
-            'dealers' => $dealers
+            'dealers' => $dealers,
         ]);
     }
 }

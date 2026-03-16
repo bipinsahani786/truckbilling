@@ -4,306 +4,458 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Vehicle;
 use App\Models\User;
-use App\Models\Dealer;
-use App\Models\Trip;
-use App\Models\TripTransaction;
 use App\Models\TripBilling;
-use App\Models\Wallet;
-use App\Models\WalletTransaction;
+use App\Models\TripTransaction;
 use App\Models\ExpenseCategory;
+use App\Services\TripService;
+use App\Services\TripBillingService;
+use App\Services\TripTransactionService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf; // PDF PACKAGE
 use Livewire\Attributes\Layout;
 
+/**
+ * TripManagement Livewire Component
+ *
+ * Manages the complete trip lifecycle UI: listing trips, creating new trips,
+ * and managing an individual trip's ledger (transactions, party billing, PDF export).
+ *
+ * Business logic is delegated to TripService, TripBillingService, and TripTransactionService.
+ * This component only handles UI state, validation, and flash messaging.
+ */
 class TripManagement extends Component
 {
     use WithPagination;
 
     #[Layout('layouts.app')]
 
-    public $currentView = 'list'; 
-    
-    // --- SEARCH & FILTER ---
+    /** @var string Current view mode: 'list', 'create', or 'manage' */
+    public $currentView = 'list';
+
+    // --- Search & Filter Properties ---
+    /** @var string Search query for filtering trips by ID, location, or truck number */
     public $search = '';
+    /** @var string Start date filter for trip listing */
     public $filter_from_date = '';
+    /** @var string End date filter for trip listing */
     public $filter_to_date = '';
 
-    // --- CREATE TRIP INPUTS ---
+    // --- Create Trip Form Inputs ---
+    /** @var string Selected vehicle ID for new trip */
     public $vehicle_id = '';
+    /** @var string Selected driver ID for new trip */
     public $driver_id = '';
+    /** @var string Selected dealer ID for new trip (optional) */
     public $dealer_id = '';
+    /** @var string Starting location for new trip */
     public $from_location = '';
+    /** @var string Destination location for new trip */
     public $to_location = '';
+    /** @var string Trip start date */
     public $start_date = '';
 
-    // --- MANAGE TRIP STATE ---
+    // --- Manage Trip State ---
+    /** @var int|null Currently managed trip's ID */
     public $manageTripId = null;
+    /** @var object|null Full trip details with relationships loaded */
     public $tripDetails = null;
+    /** @var string Current trip status (for status update dropdown) */
     public $trip_status = '';
-    public $driverWalletBalance = 0; 
-    public $driverHisab = 0; 
-    
-    // Ledger Collections
+    /** @var float Driver's current wallet balance */
+    public $driverWalletBalance = 0;
+    /** @var float Net driver position (recoveries - expenses through wallet) */
+    public $driverHisab = 0;
+
+    // --- Ledger Collections (categorized transactions) ---
+    /** @var \Illuminate\Support\Collection Driver-paid expenses */
     public $driverExp = [];
+    /** @var \Illuminate\Support\Collection Owner-paid expenses */
     public $ownerExp = [];
+    /** @var \Illuminate\Support\Collection Driver wallet recoveries */
     public $driverRec = [];
+    /** @var \Illuminate\Support\Collection Owner bank recoveries */
     public $ownerRec = [];
-    
-    // Totals
+
+    // --- Financial Summary Totals ---
     public $sumDriverExp = 0;
     public $sumOwnerExp = 0;
     public $sumDriverRec = 0;
     public $sumOwnerRec = 0;
-    public $totalRevenue = 0; 
+    public $totalRevenue = 0;
     public $totalExpense = 0;
     public $netProfit = 0;
 
-    // --- MULTIPLE INDEPENDENT PARTY BILLING ---
+    // --- Multi-Party Billing Properties ---
+    /** @var \Illuminate\Support\Collection All billing entries for the managed trip */
     public $tripBillings = [];
+    /** @var bool Whether the party billing modal is visible */
     public $showPartyModal = false;
+    /** @var int|null ID of the billing entry being edited (null for new) */
     public $editingBillingId = null;
-    
+
+    /** @var string Party/company name in the billing form */
     public $b_party_name = '';
+    /** @var string Material description in the billing form */
     public $b_material = '';
+    /** @var string Weight in tons in the billing form */
     public $b_weight = '';
+    /** @var string Freight amount in the billing form */
     public $b_freight = '';
+    /** @var string Received amount in the billing form */
     public $b_received = '';
 
+    /** @var float Total freight across all billing entries */
     public $totalPartyFreight = 0;
-    public $totalPartyReceived = 0; 
-    public $partyDues = 0; 
+    /** @var float Total received amount across all billing entries */
+    public $totalPartyReceived = 0;
+    /** @var float Outstanding dues (freight - received) */
+    public $partyDues = 0;
 
-    // --- TRANSACTION MODAL (Add/Edit) ---
+    // --- Transaction Modal Properties ---
+    /** @var bool Whether the transaction modal is visible */
     public $showTxModal = false;
+    /** @var int|null ID of the transaction being edited (null for new) */
     public $editingTxId = null;
-    public $tx_type = ''; 
-    public $tx_payment_mode = ''; 
+    /** @var string Transaction type: 'expense' or 'recovery' */
+    public $tx_type = '';
+    /** @var string Payment mode: 'wallet', 'owner_bank', or 'fastag' */
+    public $tx_payment_mode = '';
+    /** @var string Selected expense category ID */
     public $tx_category_id = '';
+    /** @var string Transaction amount */
     public $tx_amount = '';
+    /** @var string Additional remarks/notes for the transaction */
     public $tx_remarks = '';
 
+    // --- Quick Category Modal Properties ---
+    /** @var bool Whether the new category modal is visible */
     public $showCatModal = false;
+    /** @var string Name for the new expense category */
     public $new_cat_name = '';
 
+    /**
+     * Initialize component with default values.
+     * Sets the start date to today and auto-selects driver if logged in as driver.
+     */
     public function mount()
     {
         $this->start_date = date('Y-m-d');
+
+        // If a driver is logged in, auto-assign them to the trip
         if (Auth::user()->hasRole('driver')) {
             $this->driver_id = Auth::id();
         }
     }
 
+    // --- Pagination Reset Hooks (triggered when filter values change) ---
     public function updatedSearch() { $this->resetPage(); }
     public function updatedFilterFromDate() { $this->resetPage(); }
     public function updatedFilterToDate() { $this->resetPage(); }
 
+    // --- View Navigation Methods ---
     public function showList() { $this->currentView = 'list'; }
     public function showCreate() { $this->currentView = 'create'; }
-    
-    public function showManage($tripId) 
-    { 
+
+    /**
+     * Switch to the trip management/ledger view for a specific trip.
+     *
+     * @param int $tripId The trip ID to manage
+     */
+    public function showManage($tripId)
+    {
         $this->manageTripId = $tripId;
         $this->loadTripData();
-        $this->currentView = 'manage'; 
+        $this->currentView = 'manage';
     }
 
+    /**
+     * Load all trip data from the service and populate component properties.
+     * Called when entering the manage view and after any data modification.
+     */
     public function loadTripData()
     {
-        $query = Trip::with(['vehicle', 'driver', 'dealer'])->where('id', $this->manageTripId);
-        if (Auth::user()->hasRole('driver')) {
-            $query->where('driver_id', Auth::id());
-        }
-        $this->tripDetails = $query->firstOrFail();
+        $tripService = app(TripService::class);
+
+        // Determine driver restriction for security
+        $driverId = Auth::user()->hasRole('driver') ? Auth::id() : null;
+        $data = $tripService->loadTripData($this->manageTripId, $driverId);
+
+        // Map service response to component properties
+        $this->tripDetails = $data['tripDetails'];
         $this->trip_status = $this->tripDetails->status;
-        
-        $wallet = Wallet::where('driver_id', $this->tripDetails->driver_id)->first();
-        $this->driverWalletBalance = $wallet ? $wallet->balance : 0;
-
-        $txs = TripTransaction::with('category')->where('trip_id', $this->manageTripId)->latest()->get();
-        
-        $this->driverExp = $txs->where('transaction_type', 'expense')->where('payment_mode', 'wallet');
-        $this->ownerExp = $txs->where('transaction_type', 'expense')->whereIn('payment_mode', ['owner_bank', 'fastag']);
-        $this->driverRec = $txs->where('transaction_type', 'recovery')->where('payment_mode', 'wallet');
-        $this->ownerRec = $txs->where('transaction_type', 'recovery')->where('payment_mode', 'owner_bank');
-
-        $this->sumDriverExp = $this->driverExp->sum('amount');
-        $this->sumOwnerExp = $this->ownerExp->sum('amount');
-        $this->sumDriverRec = $this->driverRec->sum('amount');
-        $this->sumOwnerRec = $this->ownerRec->sum('amount');
-
-        $this->driverHisab = $this->sumDriverRec - $this->sumDriverExp;
-
-        $this->totalRevenue = $this->sumDriverRec + $this->sumOwnerRec;
-        $this->totalExpense = $this->sumDriverExp + $this->sumOwnerExp;
-        $this->netProfit = $this->totalRevenue - $this->totalExpense; 
-
-        $this->tripBillings = TripBilling::where('trip_id', $this->manageTripId)->get();
-        $this->totalPartyFreight = $this->tripBillings->sum('freight_amount');
-        $this->totalPartyReceived = $this->tripBillings->sum('received_amount');
-        $this->partyDues = $this->totalPartyFreight - $this->totalPartyReceived;
+        $this->driverWalletBalance = $data['driverWalletBalance'];
+        $this->driverExp = $data['driverExp'];
+        $this->ownerExp = $data['ownerExp'];
+        $this->driverRec = $data['driverRec'];
+        $this->ownerRec = $data['ownerRec'];
+        $this->sumDriverExp = $data['sumDriverExp'];
+        $this->sumOwnerExp = $data['sumOwnerExp'];
+        $this->sumDriverRec = $data['sumDriverRec'];
+        $this->sumOwnerRec = $data['sumOwnerRec'];
+        $this->driverHisab = $data['driverHisab'];
+        $this->totalRevenue = $data['totalRevenue'];
+        $this->totalExpense = $data['totalExpense'];
+        $this->netProfit = $data['netProfit'];
+        $this->tripBillings = $data['tripBillings'];
+        $this->totalPartyFreight = $data['totalPartyFreight'];
+        $this->totalPartyReceived = $data['totalPartyReceived'];
+        $this->partyDues = $data['partyDues'];
     }
 
+    /**
+     * Validate and create a new trip via the TripService.
+     */
     public function saveTrip()
     {
+        $ownerId = Auth::user()->hasRole('owner') ? Auth::id() : User::find(Auth::id())->owner_id;
+
         $this->validate([
-            'vehicle_id' => 'required',
-            'driver_id' => 'required',
-            'from_location' => 'required|string',
-            'to_location' => 'required|string',
+            'vehicle_id' => 'required|exists:vehicles,id',
+            'driver_id' => 'required|exists:users,id',
+            'dealer_id' => 'nullable',
+            'from_location' => 'required|string|max:255',
+            'to_location' => 'required|string|max:255',
+            'start_date' => 'required|date',
         ]);
 
-        DB::transaction(function () {
-            $ownerId = Auth::user()->hasRole('owner') ? Auth::id() : User::find(Auth::id())->owner_id;
-
-            Trip::create([
-                'owner_id' => $ownerId,
+        try {
+            $tripService = app(TripService::class);
+            $tripService->createTrip([
                 'vehicle_id' => $this->vehicle_id,
                 'driver_id' => $this->driver_id,
-                'dealer_id' => $this->dealer_id === '' ? null : $this->dealer_id,
-                'from_location' => strtoupper($this->from_location),
-                'to_location' => strtoupper($this->to_location),
+                'dealer_id' => $this->dealer_id,
+                'from_location' => $this->from_location,
+                'to_location' => $this->to_location,
                 'start_date' => $this->start_date,
-                'status' => 'in_transit',
-            ]);
+            ], $ownerId);
 
-            Vehicle::where('id', $this->vehicle_id)->update(['status' => 'maintenance']);
-        });
-
-        session()->flash('success', 'Trip created successfully!');
-        $this->reset(['vehicle_id', 'dealer_id', 'from_location', 'to_location']);
-        $this->showList();
+            session()->flash('success', 'Trip created successfully!');
+            $this->reset(['vehicle_id', 'dealer_id', 'from_location', 'to_location']);
+            $this->showList();
+        } catch (\InvalidArgumentException $e) {
+            $this->addError('vehicle_id', $e->getMessage());
+        }
     }
 
-    public function updateTripStatus() { $this->tripDetails->update(['status' => $this->trip_status]); session()->flash('console_success', 'Status Updated!'); }
+    /**
+     * Update the current trip's status via the TripService.
+     */
+    public function updateTripStatus()
+    {
+        try {
+            $tripService = app(TripService::class);
+            $tripService->updateStatus($this->tripDetails, $this->trip_status);
+            session()->flash('console_success', 'Status Updated!');
+        } catch (\InvalidArgumentException $e) {
+            session()->flash('console_error', $e->getMessage());
+        }
+    }
 
+    /**
+     * End the current trip: mark as completed and release the vehicle.
+     */
     public function endTrip()
     {
-        DB::transaction(function () {
-            $this->tripDetails->update(['status' => 'completed', 'end_date' => now()->format('Y-m-d')]);
+        try {
+            $tripService = app(TripService::class);
+            $tripService->endTrip($this->tripDetails);
             $this->trip_status = 'completed';
-            Vehicle::where('id', $this->tripDetails->vehicle_id)->update(['status' => 'active']);
-        });
-        session()->flash('console_success', 'Trip Ended.');
+            session()->flash('console_success', 'Trip Ended.');
+        } catch (\InvalidArgumentException $e) {
+            session()->flash('console_error', $e->getMessage());
+        }
     }
 
-    // --- PDF GENERATION LOGIC ---
-   // --- PDF GENERATION LOGIC ---
+    /**
+     * Download a PDF bill/ledger for a specific trip.
+     *
+     * @param int $tripId The trip ID to generate the PDF for
+     * @return \Illuminate\Http\Response Streamable PDF download
+     */
     public function downloadBill($tripId)
     {
-        $trip = Trip::with(['vehicle', 'driver', 'dealer'])->findOrFail($tripId);
-        $billings = TripBilling::where('trip_id', $tripId)->get();
-
-        // Saare transactions fetch karo PDF ke liye
-        $txs = TripTransaction::with('category')->where('trip_id', $tripId)->latest()->get();
-        
-        $driverExp = $txs->where('transaction_type', 'expense')->where('payment_mode', 'wallet');
-        $ownerExp = $txs->where('transaction_type', 'expense')->whereIn('payment_mode', ['owner_bank', 'fastag']);
-        $driverRec = $txs->where('transaction_type', 'recovery')->where('payment_mode', 'wallet');
-        $ownerRec = $txs->where('transaction_type', 'recovery')->where('payment_mode', 'owner_bank');
-
-        // Note: Humne yahan Driver Wallet fetch nahi kiya hai kyunki wo PDF me nahi dikhana hai.
-
-        $pdf = Pdf::loadView('pdf.trip-bill', [
-            'trip' => $trip,
-            'billings' => $billings,
-            'driverExp' => $driverExp,
-            'ownerExp' => $ownerExp,
-            'driverRec' => $driverRec,
-            'ownerRec' => $ownerRec,
-        ]);
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'Trip-Ledger-T' . $trip->id . '.pdf');
+        $tripService = app(TripService::class);
+        return $tripService->generateBillPdf($tripId);
     }
-    // --- OTHER MODAL LOGICS (Unchanged) ---
-    public function openBillingModal() { $this->resetValidation(); $this->reset(['editingBillingId', 'b_party_name', 'b_material', 'b_weight', 'b_freight', 'b_received']); $this->showPartyModal = true; }
-    public function editBilling($id) { $bill = TripBilling::findOrFail($id); $this->editingBillingId = $bill->id; $this->b_party_name = $bill->party_name; $this->b_material = $bill->material_description; $this->b_weight = $bill->weight_tons; $this->b_freight = $bill->freight_amount; $this->b_received = $bill->received_amount; $this->showPartyModal = true; }
-    public function deleteBilling($id) { TripBilling::findOrFail($id)->delete(); $this->loadTripData(); }
-    
+
+    // --- Party Billing Modal Methods ---
+
+    /**
+     * Open the billing modal for creating a new billing entry.
+     */
+    public function openBillingModal()
+    {
+        $this->resetValidation();
+        $this->reset(['editingBillingId', 'b_party_name', 'b_material', 'b_weight', 'b_freight', 'b_received']);
+        $this->showPartyModal = true;
+    }
+
+    /**
+     * Open the billing modal pre-filled with an existing billing entry for editing.
+     *
+     * @param int $id The billing entry ID to edit
+     */
+    public function editBilling($id)
+    {
+        $bill = TripBilling::findOrFail($id);
+        $this->editingBillingId = $bill->id;
+        $this->b_party_name = $bill->party_name;
+        $this->b_material = $bill->material_description;
+        $this->b_weight = $bill->weight_tons;
+        $this->b_freight = $bill->freight_amount;
+        $this->b_received = $bill->received_amount;
+        $this->showPartyModal = true;
+    }
+
+    /**
+     * Delete a billing entry and reload trip data.
+     *
+     * @param int $id The billing entry ID to delete
+     */
+    public function deleteBilling($id)
+    {
+        $billingService = app(TripBillingService::class);
+        $billingService->delete($id);
+        $this->loadTripData();
+    }
+
+    /**
+     * Save (create or update) a billing entry via the TripBillingService.
+     */
     public function saveBilling()
     {
         $this->validate(['b_freight' => 'required|numeric']);
-        if ($this->editingBillingId) {
-            TripBilling::findOrFail($this->editingBillingId)->update(['party_name' => $this->b_party_name, 'material_description' => $this->b_material, 'weight_tons' => $this->b_weight, 'freight_amount' => $this->b_freight, 'received_amount' => $this->b_received ?: 0]);
-        } else {
-            TripBilling::create(['trip_id' => $this->manageTripId, 'party_name' => $this->b_party_name, 'material_description' => $this->b_material, 'weight_tons' => $this->b_weight, 'freight_amount' => $this->b_freight, 'received_amount' => $this->b_received ?: 0]);
-        }
-        $this->showPartyModal = false; $this->loadTripData();
+
+        $billingService = app(TripBillingService::class);
+        $billingService->createOrUpdate($this->manageTripId, [
+            'party_name' => $this->b_party_name,
+            'material_description' => $this->b_material,
+            'weight_tons' => $this->b_weight,
+            'freight_amount' => $this->b_freight,
+            'received_amount' => $this->b_received ?: 0,
+        ], $this->editingBillingId);
+
+        $this->showPartyModal = false;
+        $this->loadTripData();
     }
 
-    public function openTxModal($type, $mode) { $this->resetValidation(); $this->reset(['editingTxId', 'tx_category_id', 'tx_amount', 'tx_remarks']); $this->tx_type = $type; $this->tx_payment_mode = $mode; $this->showTxModal = true; }
-    public function editTx($id) { $tx = TripTransaction::findOrFail($id); $this->editingTxId = $tx->id; $this->tx_type = $tx->transaction_type; $this->tx_payment_mode = $tx->payment_mode; $this->tx_category_id = $tx->expense_category_id; $this->tx_amount = $tx->amount; $this->tx_remarks = $tx->remarks; $this->showTxModal = true; }
-    public function deleteTx($id) { DB::transaction(function () use ($id) { $tx = TripTransaction::findOrFail($id); $this->reverseWalletImpact($tx); $tx->delete(); }); $this->loadTripData(); }
+    // --- Transaction Modal Methods ---
 
+    /**
+     * Open the transaction modal for creating a new transaction.
+     *
+     * @param string $type Transaction type: 'expense' or 'recovery'
+     * @param string $mode Payment mode: 'wallet', 'owner_bank', or 'fastag'
+     */
+    public function openTxModal($type, $mode)
+    {
+        $this->resetValidation();
+        $this->reset(['editingTxId', 'tx_category_id', 'tx_amount', 'tx_remarks']);
+        $this->tx_type = $type;
+        $this->tx_payment_mode = $mode;
+        $this->showTxModal = true;
+    }
+
+    /**
+     * Open the transaction modal pre-filled with an existing transaction for editing.
+     *
+     * @param int $id The transaction ID to edit
+     */
+    public function editTx($id)
+    {
+        $tx = TripTransaction::findOrFail($id);
+        $this->editingTxId = $tx->id;
+        $this->tx_type = $tx->transaction_type;
+        $this->tx_payment_mode = $tx->payment_mode;
+        $this->tx_category_id = $tx->expense_category_id;
+        $this->tx_amount = $tx->amount;
+        $this->tx_remarks = $tx->remarks;
+        $this->showTxModal = true;
+    }
+
+    /**
+     * Delete a transaction and reverse its wallet impact.
+     *
+     * @param int $id The transaction ID to delete
+     */
+    public function deleteTx($id)
+    {
+        $txService = app(TripTransactionService::class);
+        $txService->delete($id, $this->tripDetails->driver_id, $this->manageTripId);
+        $this->loadTripData();
+    }
+
+    /**
+     * Save (create or update) a transaction via the TripTransactionService.
+     * Handles wallet impact automatically through the service.
+     */
     public function saveTransaction()
     {
         $this->validate(['tx_amount' => 'required|numeric|min:1']);
-        DB::transaction(function () {
-            if ($this->editingTxId) {
-                $tx = TripTransaction::findOrFail($this->editingTxId); $this->reverseWalletImpact($tx); 
-                $tx->update(['expense_category_id' => $this->tx_category_id === '' ? null : $this->tx_category_id, 'amount' => $this->tx_amount, 'remarks' => $this->tx_remarks]); $this->applyWalletImpact($tx); 
-            } else {
-                $tx = TripTransaction::create(['trip_id' => $this->manageTripId, 'added_by' => Auth::id(), 'transaction_type' => $this->tx_type, 'expense_category_id' => $this->tx_category_id === '' ? null : $this->tx_category_id, 'amount' => $this->tx_amount, 'payment_mode' => $this->tx_payment_mode, 'remarks' => $this->tx_remarks]); $this->applyWalletImpact($tx);
-            }
-        });
-        $this->showTxModal = false; $this->loadTripData(); 
+
+        $txService = app(TripTransactionService::class);
+        $txService->createOrUpdate([
+            'trip_id' => $this->manageTripId,
+            'added_by' => Auth::id(),
+            'transaction_type' => $this->tx_type,
+            'expense_category_id' => $this->tx_category_id,
+            'amount' => $this->tx_amount,
+            'payment_mode' => $this->tx_payment_mode,
+            'remarks' => $this->tx_remarks,
+        ], $this->editingTxId, $this->tripDetails->driver_id, $this->manageTripId);
+
+        $this->showTxModal = false;
+        $this->loadTripData();
     }
 
-    private function reverseWalletImpact($tx) { if ($tx->payment_mode === 'wallet') { $wallet = Wallet::where('driver_id', $this->tripDetails->driver_id)->first(); if ($wallet) { if ($tx->transaction_type === 'expense') $wallet->balance += $tx->amount; else $wallet->balance -= $tx->amount; $wallet->save(); } } }
-    private function applyWalletImpact($tx) { if ($tx->payment_mode === 'wallet') { $wallet = Wallet::where('driver_id', $this->tripDetails->driver_id)->first(); if ($wallet) { if ($tx->transaction_type === 'expense') { $wallet->balance -= $tx->amount; WalletTransaction::create(['wallet_id' => $wallet->id, 'type' => 'debit', 'amount' => $tx->amount, 'description' => 'Trip Exp T-' . $this->manageTripId]); } else { $wallet->balance += $tx->amount; WalletTransaction::create(['wallet_id' => $wallet->id, 'type' => 'credit', 'amount' => $tx->amount, 'description' => 'Trip Rec T-' . $this->manageTripId]); } $wallet->save(); } } }
+    /**
+     * Create a new expense category inline (quick-add from trip management screen).
+     */
+    public function saveNewCategory()
+    {
+        $this->validate(['new_cat_name' => 'required|string|max:255']);
+        $ownerId = Auth::user()->hasRole('owner') ? Auth::id() : User::find(Auth::id())->owner_id;
 
-    public function saveNewCategory() { $this->validate(['new_cat_name' => 'required|string']); $ownerId = Auth::user()->hasRole('owner') ? Auth::id() : User::find(Auth::id())->owner_id; $cat = ExpenseCategory::create(['owner_id' => $ownerId, 'name' => strtoupper($this->new_cat_name)]); $this->tx_category_id = $cat->id; $this->showCatModal = false; $this->new_cat_name = ''; }
+        try {
+            $tripService = app(TripService::class);
+            $cat = $tripService->createQuickCategory($this->new_cat_name, $ownerId);
+            $this->tx_category_id = $cat->id;
+            $this->showCatModal = false;
+            $this->new_cat_name = '';
+        } catch (\InvalidArgumentException $e) {
+            $this->addError('new_cat_name', $e->getMessage());
+        }
+    }
 
+    /**
+     * Render the component view with all required data for the current view mode.
+     */
     public function render()
     {
         $ownerId = Auth::user()->hasRole('owner') ? Auth::id() : User::find(Auth::id())->owner_id;
 
-        $vehicles = Vehicle::where('owner_id', $ownerId)->where('status', 'active')->get();
-        $drivers = User::role('driver')->where('owner_id', $ownerId)->get();
-        $dealers = Dealer::where('owner_id', $ownerId)->get();
-        $categories = ExpenseCategory::where('owner_id', $ownerId)->get();
+        $tripService = app(TripService::class);
 
-        $tripQuery = Trip::with(['vehicle', 'driver', 'dealer'])->where('owner_id', $ownerId);
-        
-        if (Auth::user()->hasRole('driver')) {
-            $tripQuery->where('driver_id', Auth::id());
-        }
+        // Get dropdown data for the create form
+        $dropdowns = $tripService->getFormDropdownData($ownerId);
 
-        // --- SEARCH LOGIC ---
-        if (!empty($this->search)) {
-            $tripQuery->where(function($q) {
-                $q->where('id', 'like', "%{$this->search}%")
-                  ->orWhere('from_location', 'like', "%{$this->search}%")
-                  ->orWhere('to_location', 'like', "%{$this->search}%")
-                  ->orWhereHas('vehicle', fn($v) => $v->where('truck_number', 'like', "%{$this->search}%"));
-            });
-        }
+        // Determine driver restriction for trip listing
+        $driverId = Auth::user()->hasRole('driver') ? Auth::id() : null;
 
-        // --- DATE FILTER LOGIC ---
-        if (!empty($this->filter_from_date)) {
-            $tripQuery->whereDate('start_date', '>=', $this->filter_from_date);
-        }
-        if (!empty($this->filter_to_date)) {
-            $tripQuery->whereDate('start_date', '<=', $this->filter_to_date);
-        }
-
-        $trips = $tripQuery->latest()->paginate(10);
-
-        foreach ($trips as $t) {
-            $exp = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'expense')->sum('amount');
-            $rec = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'recovery')->sum('amount');
-            $t->calculated_profit = $rec - $exp;
-        }
+        // Get filtered and paginated trip list with calculated profit
+        $trips = $tripService->getFilteredTrips(
+            $ownerId,
+            $driverId,
+            $this->search,
+            $this->filter_from_date,
+            $this->filter_to_date
+        );
 
         return view('livewire.admin.trip-management', [
-            'vehicles' => $vehicles,
-            'drivers' => $drivers,
-            'dealers' => $dealers,
-            'categories' => $categories,
+            'vehicles' => $dropdowns['vehicles'],
+            'drivers' => $dropdowns['drivers'],
+            'dealers' => $dropdowns['dealers'],
+            'categories' => $dropdowns['categories'],
             'trips' => $trips,
         ]);
     }

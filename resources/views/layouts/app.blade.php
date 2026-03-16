@@ -48,7 +48,8 @@
 
             <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto no-scrollbar">
 
-                @hasanyrole('owner|super-admin')
+                {{-- Owner Sidebar: Full fleet management menu --}}
+                @role('owner')
                     <p class="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Management</p>
 
                     <a href="{{ route('dashboard') }}" wire:navigate
@@ -117,14 +118,41 @@
                         </svg>
                         Expense Settings
                     </a>
-                @endhasanyrole
+                @endrole
+
+                {{-- Super-Admin Sidebar: Only user management and expense categories --}}
+                @role('super-admin')
+                    <p class="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Administration</p>
+
+                    <a href="{{ route('admin.users') }}" wire:navigate
+                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-[13px] transition-all 
+                        {{ request()->routeIs('admin.users') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                            </path>
+                        </svg>
+                        User Management
+                    </a>
+
+                    <a href="{{ route('superadmin.expense.categories') }}" wire:navigate
+                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-[13px] transition-all 
+                        {{ request()->routeIs('superadmin.expense.categories') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Expense Settings
+                    </a>
+                @endrole
 
                 @role('driver')
                     <p class="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Driver App</p>
 
-                    <a href="{{ route('admin.trips') }}" wire:navigate
+                    <a href="{{ route('driver.trips') }}" wire:navigate
                         class="flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-[13px] transition-all 
-                        {{ request()->routeIs('admin.trips') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
+                        {{ request()->routeIs('driver.trips') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -172,11 +200,12 @@
 
                     <h2 class="text-sm font-bold text-slate-900">
                         @if (request()->routeIs('dashboard')) Dashboard
-                        @elseif(request()->routeIs('admin.trips')) Trip Management
+                        @elseif(request()->routeIs('admin.trips') || request()->routeIs('driver.trips')) Trip Management
                         @elseif(request()->routeIs('admin.vehicles')) Fleet Management
                         @elseif(request()->routeIs('admin.dealers')) Party Registry
                         @elseif(request()->routeIs('admin.drivers')) Driver Registry
-                        @elseif(request()->routeIs('admin.expense.categories')) Expense Settings
+                        @elseif(request()->routeIs('admin.expense.categories') || request()->routeIs('superadmin.expense.categories')) Expense Settings
+                        @elseif(request()->routeIs('admin.users')) User Management
                         @elseif(request()->routeIs('profile')) Profile Settings
                         @elseif(request()->routeIs('driver.documents')) My Documents
                         @else Control Panel
@@ -238,7 +267,8 @@
 
     <nav class="lg:hidden fixed bottom-4 left-4 right-4 h-14 bg-slate-900 shadow-2xl rounded-2xl flex items-center justify-around px-2 z-50">
 
-        @hasanyrole('owner|super-admin')
+        {{-- Owner Mobile Nav --}}
+        @role('owner')
             <a href="{{ route('dashboard') }}" wire:navigate
                 class="p-2 transition-colors {{ request()->routeIs('dashboard') ? 'text-indigo-400' : 'text-slate-400 hover:text-white' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,7 +307,27 @@
                         d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
             </a>
-        @endhasanyrole
+        @endrole
+
+        {{-- Super-Admin Mobile Nav --}}
+        @role('super-admin')
+
+            <a href="{{ route('admin.users') }}" wire:navigate
+                class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-95 {{ request()->routeIs('admin.users') ? 'ring-2 ring-indigo-300 ring-offset-2 ring-offset-slate-900' : '' }}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+            </a>
+
+            <a href="{{ route('superadmin.expense.categories') }}" wire:navigate
+                class="p-2 transition-colors {{ request()->routeIs('superadmin.expense.categories') ? 'text-indigo-400' : 'text-slate-400 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+            </a>
+        @endrole
 
         @role('driver')
             <a href="{{ route('dashboard') }}" wire:navigate
@@ -288,8 +338,8 @@
                 </svg>
             </a>
 
-            <a href="{{ route('admin.trips') }}" wire:navigate
-                class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-95 {{ request()->routeIs('admin.trips') ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-slate-900' : '' }}">
+            <a href="{{ route('driver.trips') }}" wire:navigate
+                class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-95 {{ request()->routeIs('driver.trips') ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-slate-900' : '' }}">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                         d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
