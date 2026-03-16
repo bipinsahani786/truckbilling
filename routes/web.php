@@ -17,7 +17,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
+
+Route::get('/features', function () { return view('pages.features'); })->name('features');
+Route::get('/solutions', function () { return view('pages.solutions'); })->name('solutions');
+Route::get('/about-us', function () { return view('pages.about'); })->name('about');
+Route::get('/contact-us', function () { return view('pages.contact'); })->name('contact');
+Route::get('/faq', function () { return view('pages.faq'); })->name('faq');
 
 // Guest routes (login, register, forgot/reset password handled by Fortify)
 Route::middleware('guest')->group(function () {
@@ -31,6 +37,7 @@ Route::middleware('auth')->group(function () {
     // Shared routes: Profile settings and Dashboard accessible by all roles
     Route::get('/profile', ProfileSettings::class)->name('profile');
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/home', function () { return redirect()->route('dashboard'); })->name('home');
 
     // --- Owner-Only Routes ---
     // Trips, fleet, drivers, dealers are only for fleet owners

@@ -6,11 +6,99 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class AuthController extends BaseController
 {
+    #[OA\Post(
+        path: '/api/forgot-password',
+        tags: ['Authentication'],
+        summary: 'Request a password reset link',
+        description: 'Sends a password reset link to the user\'s email.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'owner@example.com')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Reset link sent successfully'),
+            new OA\Response(response: 422, description: 'Validation Error')
+        ]
+    )]
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+            ? $this->sendResponse([], __($status))
+            : $this->sendError('Failed to send reset link.', ['error' => __($status)], 400);
+    }
+
+    #[OA\Post(
+        path: '/api/reset-password',
+        tags: ['Authentication'],
+        summary: 'Reset password using token',
+        description: 'Update the user\'s password using a valid reset token.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password', 'password_confirmation', 'token'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'owner@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'newpassword123'),
+                    new OA\Property(property: 'password_confirmation', type: 'string', format: 'password', example: 'newpassword123'),
+                    new OA\Property(property: 'token', type: 'string', example: 'token-string')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Password reset successfully'),
+            new OA\Response(response: 422, description: 'Validation Error')
+        ]
+    )]
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? $this->sendResponse([], __($status))
+            : $this->sendError('Failed to reset password.', ['error' => __($status)], 400);
+    }
+
     #[OA\Post(
         path: '/api/login',
         tags: ['Authentication'],

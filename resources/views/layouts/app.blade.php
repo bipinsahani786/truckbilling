@@ -184,7 +184,7 @@
                             <p class="text-[11px] font-bold text-slate-900 truncate capitalize">
                                 {{ auth()->user()->name ?? 'User' }}</p>
                             <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
-                                {{ auth()->user()->roles->first()->name ?? 'Staff' }}</p>
+                                {{ auth()->user()?->roles->first()?->name ?? 'Staff' }}</p>
                         </div>
                     </div>
                 </div>
