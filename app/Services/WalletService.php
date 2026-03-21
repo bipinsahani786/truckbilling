@@ -61,6 +61,12 @@ class WalletService
                 'amount' => $amount,
                 'description' => $remarks,
             ]);
+
+            // Send notification to driver
+            $driver = \App\Models\User::find($wallet->driver_id);
+            if ($driver) {
+                $driver->notify(new \App\Notifications\WalletUpdateNotification($wallet, $amount, $remarks));
+            }
         });
     }
 

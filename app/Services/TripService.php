@@ -76,6 +76,12 @@ class TripService
 
             // Mark the vehicle as 'maintenance' (on-road/unavailable)
             Vehicle::where('id', $data['vehicle_id'])->update(['status' => 'maintenance']);
+
+            // Send notification to driver
+            $driver = User::find($data['driver_id']);
+            if ($driver) {
+                $driver->notify(new \App\Notifications\NewTripNotification($trip));
+            }
         });
 
         return $trip;
