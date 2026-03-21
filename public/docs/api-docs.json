@@ -18,6 +18,99 @@
         }
     ],
     "paths": {
+        "/api/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request a password reset link",
+                "description": "Sends a password reset link to the user's email.",
+                "operationId": "20d78161b19ac6afb56924e74974ec46",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "owner@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reset link sent successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                }
+            }
+        },
+        "/api/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset password using token",
+                "description": "Update the user's password using a valid reset token.",
+                "operationId": "0a6624b616e4ba5a310a61d9f7418c35",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "token"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "owner@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "token-string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                }
+            }
+        },
         "/api/login": {
             "post": {
                 "tags": [
@@ -102,6 +195,104 @@
                 }
             }
         },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user (Fleet Owner)",
+                "description": "Create a new account and return an authentication token.",
+                "operationId": "8e4e3cb7b46126f4696379d3c7eeb4ad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "mobile_number"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "mobile_number": {
+                                        "type": "string",
+                                        "example": "9876543210"
+                                    },
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "Doe Logistics"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful registration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User registered successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|xxx"
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                }
+            }
+        },
         "/api/user": {
             "get": {
                 "tags": [
@@ -134,6 +325,131 @@
                 "responses": {
                     "200": {
                         "description": "Successfully logged out"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/profile": {
+            "post": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Update authenticated user profile",
+                "description": "Update profile details including profile photo. Use POST with _method=PUT for multipart support.",
+                "operationId": "91acbbb88b77ea02b8e44b3e929a0111",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "_method": {
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Updated"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "mobile_number": {
+                                        "type": "string",
+                                        "example": "9876543210"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "New Street, City"
+                                    },
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "My Trucking Co"
+                                    },
+                                    "profile_photo": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/change-password": {
+            "post": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Change authenticated user password",
+                "operationId": "510c6e5d1dd13eee4cfd6a02ff35e6c4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "oldpassword123"
+                                    },
+                                    "new_password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed successfully"
+                    },
+                    "400": {
+                        "description": "Invalid current password"
+                    },
+                    "422": {
+                        "description": "Validation Error"
                     }
                 },
                 "security": [
@@ -184,19 +500,19 @@
                             "schema": {
                                 "required": [
                                     "company_name",
-                                    "contact_person",
-                                    "mobile_number"
+                                    "contact_person_name",
+                                    "phone_number"
                                 ],
                                 "properties": {
                                     "company_name": {
                                         "type": "string",
                                         "example": "ABC Logistics"
                                     },
-                                    "contact_person": {
+                                    "contact_person_name": {
                                         "type": "string",
                                         "example": "John Doe"
                                     },
-                                    "mobile_number": {
+                                    "phone_number": {
                                         "type": "string",
                                         "example": "9876543210"
                                     },
@@ -232,6 +548,150 @@
                     },
                     "422": {
                         "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dealers/{id}": {
+            "get": {
+                "tags": [
+                    "Dealers"
+                ],
+                "summary": "Get specific dealer details",
+                "operationId": "a94ce2ff231fb4c8cd122f8075bfe7c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dealer retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Dealer not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Dealers"
+                ],
+                "summary": "Update a dealer",
+                "operationId": "6820cbe31c53812e59a46bac7c1b13ec",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "company_name",
+                                    "contact_person_name",
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "ABC Logistics Updated"
+                                    },
+                                    "contact_person_name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "9876543210"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john@abc.com",
+                                        "nullable": true
+                                    },
+                                    "gstin": {
+                                        "type": "string",
+                                        "example": "22AAAAA0000A1Z5",
+                                        "nullable": true
+                                    },
+                                    "pan_number": {
+                                        "type": "string",
+                                        "example": "ABCDE1234F",
+                                        "nullable": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Navi Mumbai",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Dealer updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "404": {
+                        "description": "Dealer not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Dealers"
+                ],
+                "summary": "Delete a dealer",
+                "operationId": "76901636bd7aa68122dbdcecc04c1a7c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dealer deleted successfully"
+                    },
+                    "404": {
+                        "description": "Dealer not found"
                     }
                 },
                 "security": [
@@ -278,11 +738,11 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "name",
-                                    "mobile",
+                                    "mobile_number",
                                     "password"
                                 ],
                                 "properties": {
@@ -290,7 +750,7 @@
                                         "type": "string",
                                         "example": "Driver John"
                                     },
-                                    "mobile": {
+                                    "mobile_number": {
                                         "type": "string",
                                         "example": "9876543210"
                                     },
@@ -309,12 +769,26 @@
                                         "example": "DL-123456789",
                                         "nullable": true
                                     },
+                                    "aadhar_number": {
+                                        "type": "string",
+                                        "example": "123456789012",
+                                        "nullable": true
+                                    },
                                     "address": {
                                         "type": "string",
                                         "example": "Delhi",
                                         "nullable": true
                                     },
+                                    "blood_group": {
+                                        "type": "string",
+                                        "example": "O+",
+                                        "nullable": true
+                                    },
                                     "license_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "aadhar_document": {
                                         "type": "string",
                                         "format": "binary"
                                     }
@@ -330,6 +804,169 @@
                     },
                     "422": {
                         "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/drivers/{id}": {
+            "get": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Get specific driver details",
+                "operationId": "d9cf238ff4b89ab316ece12c02325694",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Driver retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Driver not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Update a driver",
+                "description": "Update driver details and documents. Use POST with _method=PUT for multipart/form-data support.",
+                "operationId": "96a7f4c0319067bcca67bdbdb35af788",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "mobile_number"
+                                ],
+                                "properties": {
+                                    "_method": {
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Driver John Updated"
+                                    },
+                                    "mobile_number": {
+                                        "type": "string",
+                                        "example": "9876543210"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "driver@zytrixon.com",
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123",
+                                        "nullable": true
+                                    },
+                                    "license_number": {
+                                        "type": "string",
+                                        "example": "DL-123456789",
+                                        "nullable": true
+                                    },
+                                    "aadhar_number": {
+                                        "type": "string",
+                                        "example": "123456789012",
+                                        "nullable": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Delhi NCR",
+                                        "nullable": true
+                                    },
+                                    "blood_group": {
+                                        "type": "string",
+                                        "example": "A+",
+                                        "nullable": true
+                                    },
+                                    "license_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "aadhar_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Driver updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "404": {
+                        "description": "Driver not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Delete a driver",
+                "operationId": "c6348f243b3c9f0a446e28b95b90a678",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Driver deleted successfully"
+                    },
+                    "404": {
+                        "description": "Driver not found"
                     }
                 },
                 "security": [
@@ -408,6 +1045,55 @@
             }
         },
         "/api/expense-categories/{id}": {
+            "put": {
+                "tags": [
+                    "Expense Categories"
+                ],
+                "summary": "Update an expense category",
+                "operationId": "f60ad3861267120b1042e98b6c5bf1a4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Fuel (Petrol)"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Category updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "delete": {
                 "tags": [
                     "Expense Categories"
@@ -427,6 +1113,76 @@
                 "responses": {
                     "200": {
                         "description": "Category deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get user notifications",
+                "operationId": "3787b2cd3e17cdabb9b83e850f48b4fa",
+                "responses": {
+                    "200": {
+                        "description": "Notifications retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark a notification as read",
+                "operationId": "74e5c2672d6ea62323361647be625c3e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read"
+                    },
+                    "404": {
+                        "description": "Notification not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "operationId": "5c30c28811bb5757fae43fa8cfea76b6",
+                "responses": {
+                    "200": {
+                        "description": "All notifications marked as read"
                     }
                 },
                 "security": [
@@ -666,6 +1422,165 @@
                 ]
             }
         },
+        "/api/trips/{trip_id}/billings": {
+            "post": {
+                "tags": [
+                    "Trip Billings"
+                ],
+                "summary": "Add a billing entry to a trip",
+                "description": "Creates a new party billing entry for a specific trip.",
+                "operationId": "c54df44bc2c2264704450f63407e1d30",
+                "parameters": [
+                    {
+                        "name": "trip_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "freight_amount"
+                                ],
+                                "properties": {
+                                    "party_name": {
+                                        "type": "string",
+                                        "example": "ABC Corp"
+                                    },
+                                    "material_description": {
+                                        "type": "string",
+                                        "example": "Cement"
+                                    },
+                                    "weight_tons": {
+                                        "type": "number",
+                                        "example": 15.5
+                                    },
+                                    "freight_amount": {
+                                        "type": "number",
+                                        "example": 25000
+                                    },
+                                    "received_amount": {
+                                        "type": "number",
+                                        "example": 5000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Billing added successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/billings/{id}": {
+            "put": {
+                "tags": [
+                    "Trip Billings"
+                ],
+                "summary": "Update a billing entry",
+                "operationId": "6e762579dd9a1ec555fc70bb994a90f8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "freight_amount"
+                                ],
+                                "properties": {
+                                    "party_name": {
+                                        "type": "string",
+                                        "example": "ABC Corp"
+                                    },
+                                    "material_description": {
+                                        "type": "string",
+                                        "example": "Cement"
+                                    },
+                                    "weight_tons": {
+                                        "type": "number",
+                                        "example": 15.5
+                                    },
+                                    "freight_amount": {
+                                        "type": "number",
+                                        "example": 26000
+                                    },
+                                    "received_amount": {
+                                        "type": "number",
+                                        "example": 6000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Billing updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Trip Billings"
+                ],
+                "summary": "Delete a billing entry",
+                "operationId": "b3c451978ae086e2c9e808d8cab6ab40",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Billing deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/trips/{trip_id}/transactions": {
             "post": {
                 "tags": [
@@ -745,6 +1660,62 @@
             }
         },
         "/api/transactions/{id}": {
+            "put": {
+                "tags": [
+                    "Trip Transactions"
+                ],
+                "summary": "Update a transaction",
+                "description": "Updates an existing transaction and adjusts wallets by reversing the old value and applying the new one.",
+                "operationId": "745fe586ee09e428b0ec282d1a775b92",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "expense_category_id"
+                                ],
+                                "properties": {
+                                    "expense_category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "example": 600
+                                    },
+                                    "remarks": {
+                                        "type": "string",
+                                        "example": "Updated toll tax"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "delete": {
                 "tags": [
                     "Trip Transactions"
@@ -940,13 +1911,11 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "truck_number",
-                                    "make",
-                                    "model",
-                                    "year",
+                                    "truck_type",
                                     "chassis_number",
                                     "engine_number"
                                 ],
@@ -955,17 +1924,19 @@
                                         "type": "string",
                                         "example": "MH-12-AB-1234"
                                     },
-                                    "make": {
+                                    "truck_type": {
                                         "type": "string",
-                                        "example": "Tata"
+                                        "example": "Open Body"
                                     },
-                                    "model": {
+                                    "capacity_tons": {
+                                        "type": "number",
+                                        "example": 10.5,
+                                        "nullable": true
+                                    },
+                                    "rc_number": {
                                         "type": "string",
-                                        "example": "Signa"
-                                    },
-                                    "year": {
-                                        "type": "integer",
-                                        "example": 2021
+                                        "example": "RC123456",
+                                        "nullable": true
                                     },
                                     "chassis_number": {
                                         "type": "string",
@@ -975,7 +1946,43 @@
                                         "type": "string",
                                         "example": "EN123456789"
                                     },
+                                    "insurance_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "fitness_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "national_permit_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "pollution_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
                                     "rc_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "insurance_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "fitness_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "truck_photo": {
                                         "type": "string",
                                         "format": "binary"
                                     }
@@ -1039,6 +2046,164 @@
                 "responses": {
                     "200": {
                         "description": "Vehicle retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Vehicles"
+                ],
+                "summary": "Update an existing vehicle",
+                "description": "Update vehicle details and documents. Use POST with _method=PUT for multipart/form-data support in PHP.",
+                "operationId": "8ea26ba35c5b7349d898ec9b8644db32",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "truck_number",
+                                    "truck_type"
+                                ],
+                                "properties": {
+                                    "_method": {
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "truck_number": {
+                                        "type": "string",
+                                        "example": "MH-12-AB-1234"
+                                    },
+                                    "truck_type": {
+                                        "type": "string",
+                                        "example": "Open Body"
+                                    },
+                                    "capacity_tons": {
+                                        "type": "number",
+                                        "example": 10.5,
+                                        "nullable": true
+                                    },
+                                    "rc_number": {
+                                        "type": "string",
+                                        "example": "RC123456",
+                                        "nullable": true
+                                    },
+                                    "chassis_number": {
+                                        "type": "string",
+                                        "example": "CH123456789"
+                                    },
+                                    "engine_number": {
+                                        "type": "string",
+                                        "example": "EN123456789"
+                                    },
+                                    "insurance_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "fitness_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "national_permit_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "pollution_expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-03-20",
+                                        "nullable": true
+                                    },
+                                    "rc_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "insurance_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "fitness_document": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "truck_photo": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "maintenance",
+                                            "inactive"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vehicle updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "404": {
+                        "description": "Vehicle not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Vehicles"
+                ],
+                "summary": "Delete a vehicle",
+                "operationId": "4f2a87a23897868a58932b23e8675fe4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehicle deleted successfully"
+                    },
+                    "404": {
+                        "description": "Vehicle not found"
                     }
                 },
                 "security": [
@@ -1115,6 +2280,42 @@
                     }
                 ]
             }
+        },
+        "/api/wallets/{id}/transactions": {
+            "get": {
+                "tags": [
+                    "Driver Wallets"
+                ],
+                "summary": "Get wallet transaction history",
+                "description": "Retrieves a paginated list of transactions for a specific wallet.",
+                "operationId": "e802a787b2559435364e150e517f59c6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transactions retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Wallet not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -1133,6 +2334,10 @@
             "description": "Authentication"
         },
         {
+            "name": "User Profile",
+            "description": "User Profile"
+        },
+        {
             "name": "Dealers",
             "description": "Dealers"
         },
@@ -1145,8 +2350,16 @@
             "description": "Expense Categories"
         },
         {
+            "name": "Notifications",
+            "description": "Notifications"
+        },
+        {
             "name": "Trips",
             "description": "Trips"
+        },
+        {
+            "name": "Trip Billings",
+            "description": "Trip Billings"
         },
         {
             "name": "Trip Transactions",

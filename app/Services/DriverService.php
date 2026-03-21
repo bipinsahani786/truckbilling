@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * DriverService
@@ -83,21 +84,40 @@ class DriverService
      *
      * @param int   $driverId The driver's user ID to update
      * @param array $data     Updated driver details
+     * @param \Illuminate\Http\UploadedFile|null $licenseDocument Optional new license document
+     * @param \Illuminate\Http\UploadedFile|null $aadharDocument Optional new aadhar document
      * @return User The updated driver user instance
      */
-    public function updateDriver(int $driverId, array $data): User
+    public function updateDriver(int $driverId, array $data, $licenseDocument = null, $aadharDocument = null): User
     {
         $user = User::findOrFail($driverId);
 
-        $user->update([
+        $updateData = [
             'name' => $data['name'],
             'mobile_number' => $data['mobile_number'],
-            'email' => $data['email'],
+            'email' => $data['email'] ?? $user->email,
             'address' => $data['address'] ?? null,
             'blood_group' => $data['blood_group'] ?? null,
             'aadhar_number' => $data['aadhar_number'] ?? null,
             'license_number' => $data['license_number'] ?? null,
-        ]);
+        ];
+
+        // Handle document updates
+        if ($licenseDocument) {
+            if ($user->license_document_path) {
+                Storage::disk('public')->delete($user->license_document_path);
+            }
+            $updateData['license_document_path'] = $licenseDocument->store('documents/licenses', 'public');
+        }
+
+        if ($aadharDocument) {
+            if ($user->aadhar_document_path) {
+                Storage::disk('public')->delete($user->aadhar_document_path);
+            }
+            $updateData['aadhar_document_path'] = $aadharDocument->store('documents/aadhar', 'public');
+        }
+
+        $user->update($updateData);
 
         // Only update password if a new one was provided
         if (!empty($data['password'])) {

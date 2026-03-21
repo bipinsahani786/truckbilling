@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
@@ -280,5 +281,111 @@ class AuthController extends BaseController
     {
         $request->user()->currentAccessToken()->delete();
         return $this->sendResponse([], 'User logged out successfully.');
+    }
+
+    #[OA\Post(
+        path: '/api/user/profile',
+        tags: ['User Profile'],
+        summary: 'Update authenticated user profile',
+        description: 'Update profile details including profile photo. Use POST with _method=PUT for multipart support.',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['name', 'email'],
+                    properties: [
+                        new OA\Property(property: '_method', type: 'string', example: 'PUT'),
+                        new OA\Property(property: 'name', type: 'string', example: 'John Updated'),
+                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'john@example.com'),
+                        new OA\Property(property: 'mobile_number', type: 'string', example: '9876543210'),
+                        new OA\Property(property: 'address', type: 'string', example: 'New Street, City'),
+                        new OA\Property(property: 'company_name', type: 'string', example: 'My Trucking Co'),
+                        new OA\Property(property: 'profile_photo', type: 'string', format: 'binary')
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Profile updated successfully'),
+            new OA\Response(response: 422, description: 'Validation Error')
+        ]
+    )]
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'mobile_number' => 'nullable|string|max:15|unique:users,mobile_number,' . $user->id,
+            'address' => 'nullable|string|max:500',
+            'company_name' => 'nullable|string|max:255',
+            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:1024'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        $data = $request->only(['name', 'email', 'mobile_number', 'address', 'company_name']);
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+            $data['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
+
+        $user->update($data);
+
+        return $this->sendResponse($user, 'Profile updated successfully.');
+    }
+
+    #[OA\Post(
+        path: '/api/user/change-password',
+        tags: ['User Profile'],
+        summary: 'Change authenticated user password',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['current_password', 'new_password', 'new_password_confirmation'],
+                properties: [
+                    new OA\Property(property: 'current_password', type: 'string', format: 'password', example: 'oldpassword123'),
+                    new OA\Property(property: 'new_password', type: 'string', format: 'password', example: 'newpassword123'),
+                    new OA\Property(property: 'new_password_confirmation', type: 'string', format: 'password', example: 'newpassword123')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Password changed successfully'),
+            new OA\Response(response: 400, description: 'Invalid current password'),
+            new OA\Response(response: 422, description: 'Validation Error')
+        ]
+    )]
+    public function changePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return $this->sendError('Invalid Password', ['current_password' => ['The current password does not match nuestro record.']], 400);
+        }
+
+        $user->update([
+            'password' => $request->new_password
+        ]);
+
+        return $this->sendResponse([], 'Password changed successfully.');
     }
 }

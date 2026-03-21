@@ -83,8 +83,6 @@ class ExpenseCategoryApiController extends BaseController
             return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
         }
 
-        $ownerId = $user->hasRole('owner') ? $user->id : null;
-
         try {
             $cat = $this->categoryService->createOrUpdate(
                 ['name' => $request->name],
@@ -94,6 +92,56 @@ class ExpenseCategoryApiController extends BaseController
             return $this->sendResponse($cat, 'Category created successfully.', 201);
         } catch (\InvalidArgumentException $e) {
             return $this->sendError('Failed to create category', ['error' => $e->getMessage()], 400);
+        }
+    }
+
+    #[OA\Put(
+        path: '/api/expense-categories/{id}',
+        tags: ['Expense Categories'],
+        summary: 'Update an expense category',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Fuel (Petrol)')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Category updated successfully'),
+            new OA\Response(response: 422, description: 'Validation Error')
+        ]
+    )]
+    public function update(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user->hasRole('owner') && !$user->hasRole('super-admin')) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        try {
+            $cat = $this->categoryService->createOrUpdate(
+                ['name' => $request->name],
+                $user->id,
+                $user->hasRole('super-admin'),
+                (int)$id
+            );
+            return $this->sendResponse($cat, 'Category updated successfully.');
+        } catch (\InvalidArgumentException $e) {
+            return $this->sendError('Failed to update category', ['error' => $e->getMessage()], 400);
         }
     }
 

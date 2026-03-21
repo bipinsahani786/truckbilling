@@ -87,7 +87,7 @@ class WalletApiController extends BaseController
         }
 
         try {
-            $wallet = Wallet::where('driver_id', (int)$request->driver_id)->firstOrFail();
+            $wallet = \App\Models\Wallet::where('driver_id', (int)$request->driver_id)->firstOrFail();
             $this->walletService->addFunds(
                 $wallet->id,
                 (float)$request->amount,
@@ -99,5 +99,46 @@ class WalletApiController extends BaseController
         } catch (\InvalidArgumentException $e) {
              return $this->sendError('Failed to add funds', ['error' => $e->getMessage()], 400);
         }
+    }
+
+    #[OA\Get(
+        path: '/api/wallets/{id}/transactions',
+        tags: ['Driver Wallets'],
+        summary: 'Get wallet transaction history',
+        description: 'Retrieves a paginated list of transactions for a specific wallet.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Transactions retrieved successfully'),
+            new OA\Response(response: 403, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Wallet not found')
+        ]
+    )]
+    public function transactions(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        $wallet = \App\Models\Wallet::findOrFail($id);
+
+        // Security check: Owner can see their driver's wallets, Driver can only see their own
+        if ($user->hasRole('owner')) {
+            $driver = \App\Models\User::find($wallet->driver_id);
+            if (!$driver || $driver->owner_id !== $user->id) {
+                return $this->sendError('Unauthorized access to this wallet.', [], 403);
+            }
+        } elseif ($user->hasRole('driver')) {
+            if ($wallet->driver_id !== $user->id) {
+                return $this->sendError('Unauthorized access to this wallet.', [], 403);
+            }
+        } else {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        $transactions = \App\Models\WalletTransaction::where('wallet_id', $wallet->id)
+            ->latest()
+            ->paginate(15);
+
+        return $this->sendResponse($transactions, 'Transactions retrieved successfully.');
     }
 }

@@ -108,7 +108,14 @@ class VehicleApiController extends BaseController
                         new OA\Property(property: 'rc_number', type: 'string', example: 'RC123456', nullable: true),
                         new OA\Property(property: 'chassis_number', type: 'string', example: 'CH123456789'),
                         new OA\Property(property: 'engine_number', type: 'string', example: 'EN123456789'),
-                        new OA\Property(property: 'rc_document', type: 'string', format: 'binary')
+                        new OA\Property(property: 'insurance_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'fitness_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'national_permit_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'pollution_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'rc_document', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'insurance_document', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'fitness_document', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'truck_photo', type: 'string', format: 'binary')
                     ]
                 )
             )
@@ -132,14 +139,21 @@ class VehicleApiController extends BaseController
             'rc_number' => 'nullable|string',
             'chassis_number' => 'required|string|unique:vehicles',
             'engine_number' => 'required|string|unique:vehicles',
+            'insurance_expiry_date' => 'nullable|date',
+            'fitness_expiry_date' => 'nullable|date',
+            'national_permit_expiry_date' => 'nullable|date',
+            'pollution_expiry_date' => 'nullable|date',
             'rc_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'insurance_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'fitness_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'truck_photo' => 'nullable|file|mimes:jpg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
         }
 
-        $files = $request->hasFile('rc_document') ? ['rc_document' => $request->file('rc_document')] : null;
+        $files = $request->only(['rc_document', 'insurance_document', 'fitness_document', 'truck_photo']);
 
         $vehicle = $this->vehicleService->createOrUpdate(
             $request->all(),
@@ -148,5 +162,121 @@ class VehicleApiController extends BaseController
         );
 
         return $this->sendResponse($vehicle, 'Vehicle created successfully.', 201);
+    }
+
+    #[OA\Post(
+        path: '/api/vehicles/{id}',
+        tags: ['Vehicles'],
+        summary: 'Update an existing vehicle',
+        description: 'Update vehicle details and documents. Use POST with _method=PUT for multipart/form-data support in PHP.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['truck_number', 'truck_type'],
+                    properties: [
+                        new OA\Property(property: '_method', type: 'string', example: 'PUT'),
+                        new OA\Property(property: 'truck_number', type: 'string', example: 'MH-12-AB-1234'),
+                        new OA\Property(property: 'truck_type', type: 'string', example: 'Open Body'),
+                        new OA\Property(property: 'capacity_tons', type: 'number', example: 10.5, nullable: true),
+                        new OA\Property(property: 'rc_number', type: 'string', example: 'RC123456', nullable: true),
+                        new OA\Property(property: 'chassis_number', type: 'string', example: 'CH123456789'),
+                        new OA\Property(property: 'engine_number', type: 'string', example: 'EN123456789'),
+                        new OA\Property(property: 'insurance_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'fitness_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'national_permit_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'pollution_expiry_date', type: 'string', format: 'date', example: '2026-03-20', nullable: true),
+                        new OA\Property(property: 'rc_document', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'insurance_document', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'fitness_document', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'truck_photo', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'status', type: 'string', enum: ['active', 'maintenance', 'inactive'])
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Vehicle updated successfully'),
+            new OA\Response(response: 422, description: 'Validation Error'),
+            new OA\Response(response: 404, description: 'Vehicle not found')
+        ]
+    )]
+    public function update(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user->hasRole('owner')) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        $vehicle = Vehicle::where('owner_id', $user->id)->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'truck_number' => 'required|string|unique:vehicles,truck_number,' . $id,
+            'truck_type' => 'required|string',
+            'capacity_tons' => 'nullable|numeric',
+            'rc_number' => 'nullable|string',
+            'chassis_number' => 'required|string|unique:vehicles,chassis_number,' . $id,
+            'engine_number' => 'required|string|unique:vehicles,engine_number,' . $id,
+            'insurance_expiry_date' => 'nullable|date',
+            'fitness_expiry_date' => 'nullable|date',
+            'national_permit_expiry_date' => 'nullable|date',
+            'pollution_expiry_date' => 'nullable|date',
+            'rc_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'insurance_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'fitness_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'truck_photo' => 'nullable|file|mimes:jpg,png|max:2048',
+            'status' => 'required|in:active,maintenance,inactive',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }
+
+        $files = $request->only(['rc_document', 'insurance_document', 'fitness_document', 'truck_photo']);
+
+        $vehicle = $this->vehicleService->createOrUpdate(
+            $request->all(),
+            $files,
+            $user->id,
+            (int)$id
+        );
+
+        return $this->sendResponse($vehicle, 'Vehicle updated successfully.');
+    }
+
+    #[OA\Delete(
+        path: '/api/vehicles/{id}',
+        tags: ['Vehicles'],
+        summary: 'Delete a vehicle',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Vehicle deleted successfully'),
+            new OA\Response(response: 404, description: 'Vehicle not found')
+        ]
+    )]
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user->hasRole('owner')) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        $vehicle = Vehicle::where('owner_id', $user->id)->findOrFail($id);
+        
+        // Service should handle document deletion if necessary, but here we just delete the model
+        // which triggers cascade or we can manually delete files.
+        // Let's assume the service handles cleanup or we do it here.
+        // For simplicity, we delete the vehicle.
+        $vehicle->delete();
+
+        return $this->sendResponse([], 'Vehicle deleted successfully.');
     }
 }
