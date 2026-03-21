@@ -20,11 +20,10 @@ class CheckExpiryCommand extends Command
         $today = Carbon::now()->toDateString();
 
         $vehicles = Vehicle::where(function($query) use ($expiryLimit, $today) {
-            $query->whereBetween('rc_expiry', [$today, $expiryLimit])
-                  ->orWhereBetween('insurance_expiry', [$today, $expiryLimit])
-                  ->orWhereBetween('fitness_expiry', [$today, $expiryLimit])
-                  ->orWhereBetween('permit_expiry', [$today, $expiryLimit])
-                  ->orWhereBetween('pollution_expiry', [$today, $expiryLimit]);
+            $query->whereBetween('insurance_expiry_date', [$today, $expiryLimit])
+                  ->orWhereBetween('fitness_expiry_date', [$today, $expiryLimit])
+                  ->orWhereBetween('national_permit_expiry_date', [$today, $expiryLimit])
+                  ->orWhereBetween('pollution_expiry_date', [$today, $expiryLimit]);
         })->get();
 
         foreach ($vehicles as $vehicle) {
@@ -32,11 +31,10 @@ class CheckExpiryCommand extends Command
             if (!$owner) continue;
 
             $documents = [
-                'RC' => $vehicle->rc_expiry,
-                'Insurance' => $vehicle->insurance_expiry,
-                'Fitness' => $vehicle->fitness_expiry,
-                'Permit' => $vehicle->permit_expiry,
-                'Pollution' => $vehicle->pollution_expiry,
+                'Insurance' => $vehicle->insurance_expiry_date,
+                'Fitness' => $vehicle->fitness_expiry_date,
+                'Permit' => $vehicle->national_permit_expiry_date,
+                'Pollution' => $vehicle->pollution_expiry_date,
             ];
 
             foreach ($documents as $type => $expiry) {
