@@ -6,9 +6,13 @@ use OpenApi\Attributes as OA;
 
 #[OA\Info(
     version: "1.0.0",
-    title: "Zytrixon Mobile API Documentation",
-    description: "API documentation for the Zytrixon Truck Billing mobile application.",
+    title: "Zytrixon Truck Billing API",
+    description: "Official API documentation for the Zytrixon Truck Billing mobile application.",
     contact: new OA\Contact(email: "admin@zytrixon.com")
+)]
+#[OA\Server(
+    url: "https://truckdriving.zytrixontech.com",
+    description: "Production Server"
 )]
 #[OA\Server(
     url: "http://127.0.0.1:8000",
@@ -18,8 +22,7 @@ use OpenApi\Attributes as OA;
     securityScheme: "bearerAuth",
     type: "http",
     scheme: "bearer",
-    bearerFormat: "JWT",
-    description: "Enter your Sanctum token here"
+    description: "Enter your Laravel Sanctum bearer token here to authenticate."
 )]
 abstract class Controller
 {

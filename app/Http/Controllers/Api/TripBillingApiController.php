@@ -19,6 +19,64 @@ class TripBillingApiController extends BaseController
         $this->billingService = $billingService;
     }
 
+    #[OA\Get(
+        path: '/api/trips/{trip_id}/billings',
+        tags: ['Trip Billings'],
+        summary: 'Get all billing entries for a trip',
+        description: 'Returns all multi-party billing entries for a specific trip.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'trip_id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Billings retrieved successfully'),
+            new OA\Response(response: 403, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Trip not found')
+        ]
+    )]
+    public function index(Request $request, $tripId): JsonResponse
+    {
+        $trip = Trip::findOrFail($tripId);
+        $user = $request->user();
+
+        // Security: drivers can only see billings of their own trips
+        if ($user->hasRole('driver') && $trip->driver_id !== $user->id) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        $billings = TripBilling::where('trip_id', $tripId)->get();
+
+        return $this->sendResponse($billings, 'Billings retrieved successfully.');
+    }
+
+    #[OA\Get(
+        path: '/api/billings/{id}',
+        tags: ['Trip Billings'],
+        summary: 'Get a specific billing entry',
+        description: 'Returns details of a single trip billing entry.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Billing details retrieved successfully'),
+            new OA\Response(response: 403, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Billing not found')
+        ]
+    )]
+    public function show(Request $request, $id): JsonResponse
+    {
+        $billing = TripBilling::with('trip')->findOrFail($id);
+        $user = $request->user();
+
+        // Security: drivers can only see billings of their own trips
+        if ($user->hasRole('driver') && $billing->trip->driver_id !== $user->id) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        return $this->sendResponse($billing, 'Billing details retrieved successfully.');
+    }
+
     #[OA\Post(
         path: '/api/trips/{trip_id}/billings',
         tags: ['Trip Billings'],

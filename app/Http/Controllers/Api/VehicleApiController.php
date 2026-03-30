@@ -168,7 +168,7 @@ class VehicleApiController extends BaseController
         path: '/api/vehicles/{id}',
         tags: ['Vehicles'],
         summary: 'Update an existing vehicle',
-        description: 'Update vehicle details and documents. Use POST with _method=PUT for multipart/form-data support in PHP.',
+        description: 'Update vehicle details and documents. Use standard POST for multipart/form-data support.',
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
@@ -178,9 +178,7 @@ class VehicleApiController extends BaseController
             content: new OA\MediaType(
                 mediaType: 'multipart/form-data',
                 schema: new OA\Schema(
-                    required: ['truck_number', 'truck_type'],
                     properties: [
-                        new OA\Property(property: '_method', type: 'string', example: 'PUT'),
                         new OA\Property(property: 'truck_number', type: 'string', example: 'MH-12-AB-1234'),
                         new OA\Property(property: 'truck_type', type: 'string', example: 'Open Body'),
                         new OA\Property(property: 'capacity_tons', type: 'number', example: 10.5, nullable: true),
@@ -216,21 +214,21 @@ class VehicleApiController extends BaseController
         $vehicle = Vehicle::where('owner_id', $user->id)->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'truck_number' => 'required|string|unique:vehicles,truck_number,' . $id,
-            'truck_type' => 'required|string',
-            'capacity_tons' => 'nullable|numeric',
-            'rc_number' => 'nullable|string',
-            'chassis_number' => 'required|string|unique:vehicles,chassis_number,' . $id,
-            'engine_number' => 'required|string|unique:vehicles,engine_number,' . $id,
-            'insurance_expiry_date' => 'nullable|date',
-            'fitness_expiry_date' => 'nullable|date',
-            'national_permit_expiry_date' => 'nullable|date',
-            'pollution_expiry_date' => 'nullable|date',
-            'rc_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-            'insurance_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-            'fitness_document' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-            'truck_photo' => 'nullable|file|mimes:jpg,png|max:2048',
-            'status' => 'required|in:active,maintenance,inactive',
+            'truck_number' => 'sometimes|required|string|unique:vehicles,truck_number,' . $id,
+            'truck_type' => 'sometimes|required|string',
+            'capacity_tons' => 'sometimes|nullable|numeric',
+            'rc_number' => 'sometimes|nullable|string',
+            'chassis_number' => 'sometimes|required|string|unique:vehicles,chassis_number,' . $id,
+            'engine_number' => 'sometimes|required|string|unique:vehicles,engine_number,' . $id,
+            'insurance_expiry_date' => 'sometimes|nullable|date',
+            'fitness_expiry_date' => 'sometimes|nullable|date',
+            'national_permit_expiry_date' => 'sometimes|nullable|date',
+            'pollution_expiry_date' => 'sometimes|nullable|date',
+            'rc_document' => 'sometimes|nullable|file|mimes:pdf,jpg,png|max:2048',
+            'insurance_document' => 'sometimes|nullable|file|mimes:pdf,jpg,png|max:2048',
+            'fitness_document' => 'sometimes|nullable|file|mimes:pdf,jpg,png|max:2048',
+            'truck_photo' => 'sometimes|nullable|file|mimes:jpg,png|max:2048',
+            'status' => 'sometimes|required|in:active,maintenance,inactive',
         ]);
 
         if ($validator->fails()) {

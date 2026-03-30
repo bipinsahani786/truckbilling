@@ -37,14 +37,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('trips/{id}', [TripApiController::class, 'show']);
     Route::put('trips/{id}/status', [TripApiController::class, 'updateStatus']);
     Route::post('trips/{id}/end', [TripApiController::class, 'endTrip']);
+    Route::get('trips/{id}/download-invoice', [TripApiController::class, 'downloadInvoice']);
 
     // --- Trip Transactions ---
+    Route::get('trips/{trip_id}/transactions', [TripTransactionApiController::class, 'index']);
     Route::post('trips/{trip_id}/transactions', [TripTransactionApiController::class, 'store']);
+    Route::get('transactions/{id}', [TripTransactionApiController::class, 'show']);
     Route::put('transactions/{id}', [TripTransactionApiController::class, 'update']);
     Route::delete('transactions/{id}', [TripTransactionApiController::class, 'destroy']);
 
     // --- Trip Billings ---
+    Route::get('trips/{trip_id}/billings', [TripBillingApiController::class, 'index']);
     Route::post('trips/{trip_id}/billings', [TripBillingApiController::class, 'store']);
+    Route::get('billings/{id}', [TripBillingApiController::class, 'show']);
     Route::put('billings/{id}', [TripBillingApiController::class, 'update']);
     Route::delete('billings/{id}', [TripBillingApiController::class, 'destroy']);
 
@@ -54,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('vehicles', [VehicleApiController::class, 'store']);
         Route::get('vehicles/stats', [VehicleApiController::class, 'stats']);
         Route::get('vehicles/{id}', [VehicleApiController::class, 'show']);
-        Route::post('vehicles/{id}', [VehicleApiController::class, 'update']); // Use POST with _method=PUT
+        Route::post('vehicles/{id}', [VehicleApiController::class, 'update']); // Standard POST for updates (supports files & partial updates)
         Route::delete('vehicles/{id}', [VehicleApiController::class, 'destroy']);
 
         Route::get('drivers', [DriverApiController::class, 'index']);

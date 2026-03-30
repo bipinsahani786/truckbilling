@@ -29,26 +29,26 @@ class VehicleService
      */
     public function createOrUpdate(array $data, ?array $files, int $ownerId, ?int $vehicleId = null): Vehicle
     {
-        // Prepare the base data array with uppercase formatting for identifiers
-        $vehicleData = [
-            'owner_id' => $ownerId,
-            'truck_number' => strtoupper($data['truck_number']),
-            'truck_type' => $data['truck_type'],
-            'capacity_tons' => $data['capacity_tons'] ?? null,
-            'rc_number' => strtoupper($data['rc_number'] ?? ''),
-            'chassis_number' => strtoupper($data['chassis_number'] ?? ''),
-            'engine_number' => strtoupper($data['engine_number'] ?? ''),
-            'insurance_expiry_date' => $data['insurance_expiry_date'] ?? null,
-            'fitness_expiry_date' => $data['fitness_expiry_date'] ?? null,
-            'national_permit_expiry_date' => $data['national_permit_expiry_date'] ?? null,
-            'pollution_expiry_date' => $data['pollution_expiry_date'] ?? null,
-            'status' => $data['status'] ?? 'active',
-        ];
-
         // Load existing vehicle for update mode (to get current file paths)
         $existingVehicle = $vehicleId
             ? Vehicle::where('owner_id', $ownerId)->findOrFail($vehicleId)
             : null;
+
+        // Prepare the base data array with uppercase formatting for identifiers
+        $vehicleData = [
+            'owner_id' => $ownerId,
+            'truck_number' => isset($data['truck_number']) ? strtoupper($data['truck_number']) : ($existingVehicle ? $existingVehicle->truck_number : ''),
+            'truck_type' => $data['truck_type'] ?? ($existingVehicle ? $existingVehicle->truck_type : ''),
+            'capacity_tons' => $data['capacity_tons'] ?? ($existingVehicle ? $existingVehicle->capacity_tons : null),
+            'rc_number' => isset($data['rc_number']) ? strtoupper($data['rc_number']) : ($existingVehicle ? $existingVehicle->rc_number : ''),
+            'chassis_number' => isset($data['chassis_number']) ? strtoupper($data['chassis_number']) : ($existingVehicle ? $existingVehicle->chassis_number : ''),
+            'engine_number' => isset($data['engine_number']) ? strtoupper($data['engine_number']) : ($existingVehicle ? $existingVehicle->engine_number : ''),
+            'insurance_expiry_date' => $data['insurance_expiry_date'] ?? ($existingVehicle ? $existingVehicle->insurance_expiry_date : null),
+            'fitness_expiry_date' => $data['fitness_expiry_date'] ?? ($existingVehicle ? $existingVehicle->fitness_expiry_date : null),
+            'national_permit_expiry_date' => $data['national_permit_expiry_date'] ?? ($existingVehicle ? $existingVehicle->national_permit_expiry_date : null),
+            'pollution_expiry_date' => $data['pollution_expiry_date'] ?? ($existingVehicle ? $existingVehicle->pollution_expiry_date : null),
+            'status' => $data['status'] ?? ($existingVehicle ? $existingVehicle->status : 'active'),
+        ];
 
         // Process each document upload: store new file, delete old one if replacing
         $fileMapping = [

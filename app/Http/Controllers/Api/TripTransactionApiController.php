@@ -19,6 +19,67 @@ class TripTransactionApiController extends BaseController
         $this->txService = $txService;
     }
 
+    #[OA\Get(
+        path: '/api/trips/{trip_id}/transactions',
+        tags: ['Trip Transactions'],
+        summary: 'Get all transactions for a trip',
+        description: 'Returns all expense and recovery transactions for a specific trip.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'trip_id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Transactions retrieved successfully'),
+            new OA\Response(response: 403, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Trip not found')
+        ]
+    )]
+    public function index(Request $request, $tripId): JsonResponse
+    {
+        $trip = Trip::findOrFail($tripId);
+        $user = $request->user();
+
+        // Security: drivers can only see transactions of their own trips
+        if ($user->hasRole('driver') && $trip->driver_id !== $user->id) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        $txs = TripTransaction::with('category')
+            ->where('trip_id', $tripId)
+            ->latest()
+            ->get();
+
+        return $this->sendResponse($txs, 'Transactions retrieved successfully.');
+    }
+
+    #[OA\Get(
+        path: '/api/transactions/{id}',
+        tags: ['Trip Transactions'],
+        summary: 'Get a specific transaction',
+        description: 'Returns details of a single trip transaction.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Transaction details retrieved successfully'),
+            new OA\Response(response: 403, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Transaction not found')
+        ]
+    )]
+    public function show(Request $request, $id): JsonResponse
+    {
+        $tx = TripTransaction::with(['trip', 'category'])->findOrFail($id);
+        $user = $request->user();
+
+        // Security: drivers can only see transactions of their own trips
+        if ($user->hasRole('driver') && $tx->trip->driver_id !== $user->id) {
+            return $this->sendError('Unauthorized.', [], 403);
+        }
+
+        return $this->sendResponse($tx, 'Transaction details retrieved successfully.');
+    }
+
     #[OA\Post(
         path: '/api/trips/{trip_id}/transactions',
         tags: ['Trip Transactions'],

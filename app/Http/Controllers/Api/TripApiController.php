@@ -202,4 +202,33 @@ class TripApiController extends BaseController
              return $this->sendError('Failed to end trip', ['error' => $e->getMessage()], 400);
         }
     }
+
+    #[OA\Get(
+        path: '/api/trips/{id}/download-invoice',
+        tags: ['Trips'],
+        summary: 'Download trip invoice/ledger PDF',
+        description: 'Generates and downloads a comprehensive PDF report of the trip including billings and transactions.',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'PDF stream'),
+            new OA\Response(response: 403, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Trip not found')
+        ]
+    )]
+    public function downloadInvoice(Request $request, $id)
+    {
+        $user = $request->user();
+        $driverId = $user->hasRole('driver') ? $user->id : null;
+
+        try {
+            // Verify access through loadTripData which has security checks
+            $this->tripService->loadTripData((int)$id, $driverId);
+            return $this->tripService->generateBillPdf((int)$id);
+        } catch (\Exception $e) {
+            return $this->sendError('Unauthorized or trip not found', [], 404);
+        }
+    }
 }

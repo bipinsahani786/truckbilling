@@ -1,14 +1,18 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Zytrixon Mobile API Documentation",
-        "description": "API documentation for the Zytrixon Truck Billing mobile application.",
+        "title": "Zytrixon Truck Billing API",
+        "description": "Official API documentation for the Zytrixon Truck Billing mobile application.",
         "contact": {
             "email": "admin@zytrixon.com"
         },
         "version": "1.0.0"
     },
     "servers": [
+        {
+            "url": "https://truckdriving.zytrixontech.com",
+            "description": "Production Server"
+        },
         {
             "url": "http://127.0.0.1:8000",
             "description": "Local Development Server"
@@ -1422,7 +1426,77 @@
                 ]
             }
         },
+        "/api/trips/{id}/download-invoice": {
+            "get": {
+                "tags": [
+                    "Trips"
+                ],
+                "summary": "Download trip invoice/ledger PDF",
+                "description": "Generates and downloads a comprehensive PDF report of the trip including billings and transactions.",
+                "operationId": "ce56821b2746c7b9afb29654c4e19fde",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF stream"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Trip not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/trips/{trip_id}/billings": {
+            "get": {
+                "tags": [
+                    "Trip Billings"
+                ],
+                "summary": "Get all billing entries for a trip",
+                "description": "Returns all multi-party billing entries for a specific trip.",
+                "operationId": "7bf79049b89b03d9d4d1e1795f34c047",
+                "parameters": [
+                    {
+                        "name": "trip_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Billings retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Trip not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Trip Billings"
@@ -1491,6 +1565,40 @@
             }
         },
         "/api/billings/{id}": {
+            "get": {
+                "tags": [
+                    "Trip Billings"
+                ],
+                "summary": "Get a specific billing entry",
+                "description": "Returns details of a single trip billing entry.",
+                "operationId": "ab85fbf08b2e1038fce5fe656ac2e59f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Billing details retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Billing not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Trip Billings"
@@ -1582,6 +1690,40 @@
             }
         },
         "/api/trips/{trip_id}/transactions": {
+            "get": {
+                "tags": [
+                    "Trip Transactions"
+                ],
+                "summary": "Get all transactions for a trip",
+                "description": "Returns all expense and recovery transactions for a specific trip.",
+                "operationId": "acaef88b40108da52dec552e892174dd",
+                "parameters": [
+                    {
+                        "name": "trip_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transactions retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Trip not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Trip Transactions"
@@ -1660,6 +1802,40 @@
             }
         },
         "/api/transactions/{id}": {
+            "get": {
+                "tags": [
+                    "Trip Transactions"
+                ],
+                "summary": "Get a specific transaction",
+                "description": "Returns details of a single trip transaction.",
+                "operationId": "d35ef6298319e411a1a9216aac75acd2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction details retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Transaction not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Trip Transactions"
@@ -2059,7 +2235,7 @@
                     "Vehicles"
                 ],
                 "summary": "Update an existing vehicle",
-                "description": "Update vehicle details and documents. Use POST with _method=PUT for multipart/form-data support in PHP.",
+                "description": "Update vehicle details and documents. Use standard POST for multipart/form-data support.",
                 "operationId": "8ea26ba35c5b7349d898ec9b8644db32",
                 "parameters": [
                     {
@@ -2076,15 +2252,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "required": [
-                                    "truck_number",
-                                    "truck_type"
-                                ],
                                 "properties": {
-                                    "_method": {
-                                        "type": "string",
-                                        "example": "PUT"
-                                    },
                                     "truck_number": {
                                         "type": "string",
                                         "example": "MH-12-AB-1234"
@@ -2322,8 +2490,7 @@
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
-                "description": "Enter your Sanctum token here",
-                "bearerFormat": "JWT",
+                "description": "Enter your Laravel Sanctum bearer token here to authenticate.",
                 "scheme": "bearer"
             }
         }

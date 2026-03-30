@@ -75,7 +75,7 @@ class TripService
             ]);
 
             // Mark the vehicle as 'maintenance' (on-road/unavailable)
-            Vehicle::where('id', $data['vehicle_id'])->update(['status' => 'maintenance']);
+            // Vehicle::where('id', $data['vehicle_id'])->update(['status' => 'maintenance']);
 
             // Send notification to driver
             $driver = User::find($data['driver_id']);
@@ -236,9 +236,9 @@ class TripService
         if (!empty($search)) {
             $tripQuery->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhere('from_location', 'like', "%{$search}%")
-                  ->orWhere('to_location', 'like', "%{$search}%")
-                  ->orWhereHas('vehicle', fn($v) => $v->where('truck_number', 'like', "%{$search}%"));
+                    ->orWhere('from_location', 'like', "%{$search}%")
+                    ->orWhere('to_location', 'like', "%{$search}%")
+                    ->orWhereHas('vehicle', fn($v) => $v->where('truck_number', 'like', "%{$search}%"));
             });
         }
 
