@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/home', function () { return redirect()->route('dashboard'); })->name('home');
 
+    // Trip Download (Shared access for owners/drivers)
+    Route::get('/trip/{id}/download', [\App\Http\Controllers\TripController::class, 'downloadInvoice'])->name('trip.download');
+
     // --- Owner-Only Routes ---
     // Trips, fleet, drivers, dealers are only for fleet owners
     Route::middleware('role:owner')->prefix('admin')->group(function () {

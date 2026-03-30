@@ -266,17 +266,6 @@ class TripManagement extends Component
         }
     }
 
-    /**
-     * Download a PDF bill/ledger for a specific trip.
-     *
-     * @param int $tripId The trip ID to generate the PDF for
-     * @return \Illuminate\Http\Response Streamable PDF download
-     */
-    public function downloadBill($tripId)
-    {
-        $tripService = app(TripService::class);
-        return $tripService->generateBillPdf($tripId);
-    }
 
     // --- Party Billing Modal Methods ---
 
