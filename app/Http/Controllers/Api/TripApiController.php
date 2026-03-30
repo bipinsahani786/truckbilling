@@ -213,7 +213,11 @@ class TripApiController extends BaseController
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
         ],
         responses: [
-            new OA\Response(response: 200, description: 'PDF stream'),
+            new OA\Response(
+                response: 200,
+                description: 'PDF stream',
+                content: new OA\MediaType(mediaType: 'application/pdf')
+            ),
             new OA\Response(response: 403, description: 'Unauthorized'),
             new OA\Response(response: 404, description: 'Trip not found')
         ]

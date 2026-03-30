@@ -296,9 +296,7 @@ class TripService
             'ownerRec' => $ownerRec,
         ]);
 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'Trip-Ledger-T' . $trip->id . '.pdf');
+        return $pdf->download('Trip-Ledger-T' . $trip->id . '.pdf');
     }
 
     /**
