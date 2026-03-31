@@ -43,6 +43,23 @@ class TripTransaction extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['category_name'];
+
+    /**
+     * Get the expense category name.
+     *
+     * @return string|null
+     */
+    public function getCategoryNameAttribute()
+    {
+        return $this->category?->name;
+    }
+
+    /**
      * Get the trip that this transaction belongs to.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

@@ -136,6 +136,7 @@ class TripTransactionApiController extends BaseController
 
         try {
             $tx = $this->txService->createOrUpdate($data, null, $trip->driver_id, $trip->id);
+            $tx->load('category');
             return $this->sendResponse($tx, 'Transaction added successfully.', 201);
         } catch (\Exception $e) {
             return $this->sendError('Failed to add transaction', ['error' => $e->getMessage()], 400); 
@@ -188,6 +189,7 @@ class TripTransactionApiController extends BaseController
 
         try {
             $tx = $this->txService->createOrUpdate($request->all(), $tx->id, $tx->trip->driver_id, $tx->trip_id);
+            $tx->load('category');
             return $this->sendResponse($tx, 'Transaction updated successfully.');
         } catch (\Exception $e) {
             return $this->sendError('Failed to update transaction', ['error' => $e->getMessage()], 400);
