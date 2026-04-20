@@ -326,6 +326,67 @@
             z-index: 50;
             position: relative;
         }
+
+        /* AI Nav Effect */
+        .ai-nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .ai-nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #818cf8, transparent);
+            transition: all 0.4s ease;
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px rgba(129, 140, 248, 0.8);
+            opacity: 0;
+        }
+        .ai-nav-link:hover::after {
+            width: 100%;
+            opacity: 1;
+        }
+        .ai-nav-link:hover {
+            color: #818cf8 !important;
+            text-shadow: 0 0 10px rgba(129, 140, 248, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* AI Background Effect */
+        .header-ai-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav:hover .header-ai-bg {
+            opacity: 0.3;
+        }
+
+        /* AI Scan Animation */
+        .header-ai-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, rgba(129, 140, 248, 0.1), transparent);
+            height: 200%;
+            top: -100%;
+            animation: aiScan 4s linear infinite;
+        }
+
+        @keyframes aiScan {
+            0% { transform: translateY(-50%); }
+            100% { transform: translateY(50%); }
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-indigo-500/30 selection:text-white relative">
@@ -350,17 +411,20 @@
              scrolled = (window.pageYOffset > 20);
          "
          :class="{ 
-             'bg-white/5 backdrop-blur-2xl border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]': scrolled, 
-             'bg-white/5 backdrop-blur-md border-transparent': !scrolled,
+             'bg-white/10 backdrop-blur-3xl border-white/20 shadow-2xl': scrolled, 
+             'bg-white/5 backdrop-blur-xl border-white/10': !scrolled,
              'is-night': isNight
          }"
-         class="fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border-b moving-road-container">
+         class="fixed top-4 left-4 right-4 z-[100] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] moving-road-container group">
+        
+        <!-- AI Hidden Background -->
+        <div class="header-ai-bg"></div>
         
         <!-- Header Summer Background Elements -->
         <div class="footer-sun" style="top: -20px; right: 10%; width: 80px; height: 80px; opacity: 0.5;"></div>
         <div class="header-moon"></div>
 
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
             <div class="flex items-center justify-between h-20 md:h-24 transition-none">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
@@ -381,21 +445,20 @@
                 </div>
 
                 <!-- Desktop Links -->
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="{{ route('welcome') }}" class="text-[15px] text-dribbble-light hover:text-white transition-colors">Home</a>
-                    <a href="{{ Route::has('features') ? route('features') : '#features' }}" class="text-[15px] text-dribbble-light hover:text-white transition-colors">Features</a>
-                    <a href="{{ Route::has('solutions') ? route('solutions') : '#solutions' }}" class="text-[15px] text-dribbble-light hover:text-white transition-colors">Solutions</a>
-                    <a href="#fleet" class="text-[15px] text-dribbble-light hover:text-white transition-colors">Fleet</a>
-                    <a href="{{ Route::has('contact') ? route('contact') : '#contact' }}" class="text-[15px] text-dribbble-light hover:text-white transition-colors">Support</a>
+                <div class="hidden md:flex items-center gap-10">
+                    <a href="{{ route('welcome') }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Home</a>
+                    <a href="{{ Route::has('features') ? route('features') : '#features' }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Features</a>
+                    <a href="{{ Route::has('solutions') ? route('solutions') : '#solutions' }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Solutions</a>
+                    <a href="#fleet" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Fleet</a>
+                    <a href="{{ Route::has('contact') ? route('contact') : '#contact' }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Support</a>
                 </div>
 
-                <!-- Auth -->
                 <div class="hidden md:flex items-center gap-4">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-6 py-2 bg-indigo-600 rounded-lg text-sm font-semibold text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/20">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="px-6 py-2.5 bg-indigo-600 rounded-lg text-[13px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/20">Dashboard</a>
                     @else
-                        <a href="{{ route('login') }}" class="px-6 py-2 bg-white/10 border border-white/10 rounded-lg text-sm font-semibold text-white hover:bg-white/20 transition-all duration-300">Sign In</a>
-                        <a href="{{ route('register') }}" class="px-6 py-2 bg-indigo-600 rounded-lg text-sm font-semibold text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/20">Start Free</a>
+                        <a href="{{ route('login') }}" class="px-6 py-2.5 bg-white/10 border border-white/20 rounded-lg text-[13px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-all duration-300">Sign In</a>
+                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-indigo-600 rounded-lg text-[13px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/30">Start Free</a>
                     @endauth
                 </div>
 
