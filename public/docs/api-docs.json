@@ -463,6 +463,117 @@
                 ]
             }
         },
+        "/api/dashboard": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard statistics",
+                "description": "Retrieve key metrics and recent trips based on the authenticated user's role.",
+                "operationId": "5f21f542b2113686b0eaf5475bd2982d",
+                "parameters": [
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "description": "End date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trip status filter",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dashboard data retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dashboard data retrieved successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "totalRevenue": {
+                                                    "type": "number",
+                                                    "example": 150000
+                                                },
+                                                "totalExpenses": {
+                                                    "type": "number",
+                                                    "example": 45000
+                                                },
+                                                "netProfit": {
+                                                    "type": "number",
+                                                    "example": 105000
+                                                },
+                                                "pendingDues": {
+                                                    "type": "number",
+                                                    "example": 25000
+                                                },
+                                                "totalVehicles": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "onRoadVehicles": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "fleetPercentage": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "liveTrips": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "cashflow_chart": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/dealers": {
             "get": {
                 "tags": [
@@ -1446,7 +1557,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "PDF stream"
+                        "description": "PDF stream",
+                        "content": {
+                            "application/pdf": {}
+                        }
                     },
                     "403": {
                         "description": "Unauthorized"
@@ -2503,6 +2617,10 @@
         {
             "name": "User Profile",
             "description": "User Profile"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
         },
         {
             "name": "Dealers",
