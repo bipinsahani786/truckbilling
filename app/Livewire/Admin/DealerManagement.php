@@ -67,7 +67,7 @@ class DealerManagement extends Component
     public function saveDealer()
     {
         // Build validation rules with GSTIN and PAN regex patterns
-        $uniqueGstin = 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/|unique:dealers,gstin';
+        $uniqueGstin =  'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/|unique:dealers,gstin';
         $uniquePan = 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/|unique:dealers,pan_number';
         $uniquePhone = 'nullable|string|max:15';
         $uniqueEmail = 'nullable|email';
