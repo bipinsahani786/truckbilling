@@ -22,6 +22,13 @@
                     </div>
                 @endif
 
+                @if (session()->has('error'))
+                    <div class="px-4 py-3 lg:py-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <button @click="setTimeout(() => $refs.dealerInput.focus(), 100); window.scrollTo({top: 0, behavior: 'smooth'})" wire:click="resetForm" class="hidden lg:flex px-6 py-2.5 bg-[#0A0A0A] text-white rounded-xl text-xs font-extrabold items-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest active:scale-95">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     ADD NEW PARTY
@@ -55,12 +62,13 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">GSTIN</label>
-                                <input type="text" wire:model="gstin" placeholder="27AA..." class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none uppercase">
+                                <input type="text" wire:model.live.debounce.250ms="gstin" placeholder="27AA..." class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none uppercase">
                                 @error('gstin') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                             </div>
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">PAN Number</label>
-                                <input type="text" wire:model="pan_number" placeholder="ABCDE1234F" class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none uppercase">
+                                <input type="text" wire:model.live.debounce.250ms="pan_number" placeholder="ABCDE1234F" class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none uppercase">
+                                @error('pan_number') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
@@ -73,6 +81,7 @@
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Email ID</label>
                                 <input type="email" wire:model="email" placeholder="billing@party.com" class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                                @error('email') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
@@ -82,22 +91,25 @@
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Billing Address</label>
                                 <input type="text" wire:model="billing_address" placeholder="Street, Area..." class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold outline-none">
+                                @error('billing_address') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">City</label>
                                     <input type="text" wire:model="city" placeholder="E.g. Patna" class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold outline-none">
+                                    @error('city') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Pincode</label>
                                     <input type="text" wire:model="pincode" placeholder="800001" class="w-full mt-1 px-4 py-3 lg:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold outline-none">
+                                    @error('pincode') <span class="text-[10px] text-rose-500 font-bold">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                         </div>
 
                         <div class="pt-2 flex flex-col sm:flex-row gap-2">
-                            <button type="submit" @click="showMobileForm = false" wire:loading.attr="disabled" class="flex-1 py-3.5 lg:py-3 bg-[#0A0A0A] text-white rounded-xl text-xs font-extrabold hover:bg-slate-800 transition-all shadow-lg uppercase tracking-widest disabled:opacity-70 flex items-center justify-center gap-2">
+                            <button type="submit" wire:loading.attr="disabled" class="flex-1 py-3.5 lg:py-3 bg-[#0A0A0A] text-white rounded-xl text-xs font-extrabold hover:bg-slate-800 transition-all shadow-lg uppercase tracking-widest disabled:opacity-70 flex items-center justify-center gap-2">
                                 <span wire:loading.remove wire:target="saveDealer">
                                     {{ $isEditMode ? 'UPDATE DEALER' : 'SAVE DEALER' }}
                                 </span>

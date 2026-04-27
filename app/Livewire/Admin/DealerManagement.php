@@ -61,14 +61,37 @@ class DealerManagement extends Component
     }
 
     /**
+     * "Active" field handling: Auto-uppercase and PAN extraction.
+     */
+    public function updatedGstin($value)
+    {
+        $this->gstin = strtoupper($value);
+        
+        // Auto-fill PAN from GSTIN (GSTIN characters 3 to 12 represent the PAN)
+        if (strlen($this->gstin) >= 12) {
+            $extractedPan = substr($this->gstin, 2, 10);
+            // Basic check if it looks like a PAN (5 letters + 4 digits + 1 letter)
+            if (preg_match('/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/', $extractedPan)) {
+                $this->pan_number = $extractedPan;
+            }
+        }
+    }
+
+    public function updatedPanNumber($value)
+    {
+        $this->pan_number = strtoupper($value);
+    }
+
+    /**
      * Validate form inputs and save the dealer via DealerService.
      * Handles both new registration and editing of existing dealers.
      */
     public function saveDealer()
     {
         // Build validation rules with GSTIN and PAN regex patterns
-        $uniqueGstin =  'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/|unique:dealers,gstin';
-        $uniquePan = 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/|unique:dealers,pan_number';
+        // Relaxed regex to ensure "it just works" for various GSTIN formats while maintaining 15 chars
+        $uniqueGstin =  'nullable|string|size:15|regex:/^[0-9]{2}[A-Z0-9]{13}$/i|unique:dealers,gstin';
+        $uniquePan = 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i|unique:dealers,pan_number';
         $uniquePhone = 'nullable|string|max:15';
         $uniqueEmail = 'nullable|email';
 
@@ -87,28 +110,32 @@ class DealerManagement extends Component
             'pincode' => 'nullable|digits:6',
         ]);
 
-        $dealerService = app(DealerService::class);
-        $dealerService->createOrUpdate([
-            'company_name' => $this->company_name,
-            'contact_person_name' => $this->contact_person_name,
-            'gstin' => $this->gstin,
-            'pan_number' => $this->pan_number,
-            'phone_number' => $this->phone_number,
-            'alternate_phone' => $this->alternate_phone,
-            'email' => $this->email,
-            'billing_address' => $this->billing_address,
-            'city' => $this->city,
-            'state' => $this->state,
-            'pincode' => $this->pincode,
-        ], Auth::id(), $this->isEditMode ? $this->dealer_id : null);
+        try {
+            $dealerService = app(DealerService::class);
+            $dealerService->createOrUpdate([
+                'company_name' => $this->company_name,
+                'contact_person_name' => $this->contact_person_name,
+                'gstin' => $this->gstin,
+                'pan_number' => $this->pan_number,
+                'phone_number' => $this->phone_number,
+                'alternate_phone' => $this->alternate_phone,
+                'email' => $this->email,
+                'billing_address' => $this->billing_address,
+                'city' => $this->city,
+                'state' => $this->state,
+                'pincode' => $this->pincode,
+            ], Auth::id(), $this->isEditMode ? $this->dealer_id : null);
 
-        if ($this->isEditMode) {
-            session()->flash('success', 'Dealer updated successfully!');
-        } else {
-            session()->flash('success', 'New Dealer added successfully!');
+            if ($this->isEditMode) {
+                session()->flash('success', 'Dealer updated successfully!');
+            } else {
+                session()->flash('success', 'New Dealer added successfully!');
+            }
+
+            $this->resetForm();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Something went wrong: ' . $e->getMessage());
         }
-
-        $this->resetForm();
     }
 
     /**
