@@ -35,10 +35,18 @@ class TripManagement extends Component
     // --- Search & Filter Properties ---
     /** @var string Search query for filtering trips by ID, location, or truck number */
     public $search = '';
+    /** @var string Status filter (in_transit, completed, etc) */
+    public $statusFilter = '';
     /** @var string Start date filter for trip listing */
     public $filter_from_date = '';
     /** @var string End date filter for trip listing */
     public $filter_to_date = '';
+
+    // --- Sub-list Search Properties (Manage View) ---
+    public $searchTxDriver = '';
+    public $searchTxOwner = '';
+    public $searchRecDriver = '';
+    public $searchRecOwner = '';
 
     // --- Create Trip Form Inputs ---
     /** @var string Selected vehicle ID for new trip */
@@ -53,6 +61,9 @@ class TripManagement extends Component
     public $to_location = '';
     /** @var string Trip start date */
     public $start_date = '';
+
+    /** @var int|null ID of the trip being edited (null for new trips) */
+    public $editingTripId = null;
 
     // --- Manage Trip State ---
     /** @var int|null Currently managed trip's ID */
@@ -154,7 +165,43 @@ class TripManagement extends Component
 
     // --- View Navigation Methods ---
     public function showList() { $this->currentView = 'list'; }
-    public function showCreate() { $this->currentView = 'create'; }
+    public function showCreate() 
+    { 
+        $this->resetForm();
+        $this->currentView = 'create'; 
+    }
+
+    /**
+     * Prepare the form for editing an existing trip.
+     * 
+     * @param int $tripId
+     */
+    public function showEdit($tripId)
+    {
+        $trip = \App\Models\Trip::findOrFail($tripId);
+        $this->editingTripId = $tripId;
+        $this->vehicle_id = $trip->vehicle_id;
+        $this->driver_id = $trip->driver_id;
+        $this->dealer_id = $trip->dealer_id;
+        $this->from_location = $trip->from_location;
+        $this->to_location = $trip->to_location;
+        $this->start_date = $trip->start_date;
+        $this->currentView = 'create'; // Reuse the create form view
+    }
+
+    /**
+     * Reset form inputs to defaults.
+     */
+    private function resetForm()
+    {
+        $this->editingTripId = null;
+        $this->vehicle_id = '';
+        $this->driver_id = Auth::user()->hasRole('driver') ? Auth::id() : '';
+        $this->dealer_id = '';
+        $this->from_location = '';
+        $this->to_location = '';
+        $this->start_date = date('Y-m-d');
+    }
 
     /**
      * Switch to the trip management/ledger view for a specific trip.
@@ -200,7 +247,36 @@ class TripManagement extends Component
         $this->totalPartyFreight = $data['totalPartyFreight'];
         $this->totalPartyReceived = $data['totalPartyReceived'];
         $this->partyDues = $data['partyDues'];
+
+        // --- Apply Sub-list Filtering ---
+        if (!empty($this->searchTxDriver)) {
+            $this->driverExp = $this->driverExp->filter(fn($ex) => 
+                stripos($ex->category->name ?? '', $this->searchTxDriver) !== false || 
+                stripos($ex->remarks ?? '', $this->searchTxDriver) !== false
+            );
+        }
+        if (!empty($this->searchTxOwner)) {
+            $this->ownerExp = $this->ownerExp->filter(fn($ex) => 
+                stripos($ex->category->name ?? '', $this->searchTxOwner) !== false || 
+                stripos($ex->remarks ?? '', $this->searchTxOwner) !== false
+            );
+        }
+        if (!empty($this->searchRecDriver)) {
+            $this->driverRec = $this->driverRec->filter(fn($rc) => 
+                stripos($rc->remarks ?? '', $this->searchRecDriver) !== false
+            );
+        }
+        if (!empty($this->searchRecOwner)) {
+            $this->ownerRec = $this->ownerRec->filter(fn($rc) => 
+                stripos($rc->remarks ?? '', $this->searchRecOwner) !== false
+            );
+        }
     }
+
+    public function updatedSearchTxDriver() { $this->loadTripData(); }
+    public function updatedSearchTxOwner() { $this->loadTripData(); }
+    public function updatedSearchRecDriver() { $this->loadTripData(); }
+    public function updatedSearchRecOwner() { $this->loadTripData(); }
 
     /**
      * Validate and create a new trip via the TripService.
@@ -220,20 +296,44 @@ class TripManagement extends Component
 
         try {
             $tripService = app(TripService::class);
-            $tripService->createTrip([
+            $data = [
                 'vehicle_id' => $this->vehicle_id,
                 'driver_id' => $this->driver_id,
                 'dealer_id' => $this->dealer_id,
                 'from_location' => $this->from_location,
                 'to_location' => $this->to_location,
                 'start_date' => $this->start_date,
-            ], $ownerId);
+            ];
 
-            session()->flash('success', 'Trip created successfully!');
-            $this->reset(['vehicle_id', 'dealer_id', 'from_location', 'to_location']);
+            if ($this->editingTripId) {
+                $tripService->updateTrip($this->editingTripId, $data, $ownerId);
+                session()->flash('success', 'Trip updated successfully!');
+            } else {
+                $tripService->createTrip($data, $ownerId);
+                session()->flash('success', 'New trip created and driver notified!');
+            }
+
+            $this->resetForm();
             $this->showList();
-        } catch (\InvalidArgumentException $e) {
-            $this->addError('vehicle_id', $e->getMessage());
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete a trip after user confirmation.
+     * 
+     * @param int $tripId
+     */
+    public function deleteTrip($tripId)
+    {
+        $ownerId = Auth::user()->hasRole('owner') ? Auth::id() : User::find(Auth::id())->owner_id;
+        
+        try {
+            app(TripService::class)->deleteTrip($tripId, $ownerId);
+            session()->flash('success', 'Trip deleted successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error deleting trip: ' . $e->getMessage());
         }
     }
 
@@ -437,7 +537,8 @@ class TripManagement extends Component
             $driverId,
             $this->search,
             $this->filter_from_date,
-            $this->filter_to_date
+            $this->filter_to_date,
+            $this->statusFilter
         );
 
         return view('livewire.admin.trip-management', [

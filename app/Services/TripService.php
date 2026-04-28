@@ -62,9 +62,14 @@ class TripService
         $trip = null;
 
         DB::transaction(function () use ($data, $ownerId, &$trip) {
+            // Get the next trip number for this owner
+            $latestTrip = Trip::where('owner_id', $ownerId)->orderBy('trip_number', 'desc')->first();
+            $nextTripNumber = $latestTrip ? $latestTrip->trip_number + 1 : 1;
+
             // Create the trip record with uppercase locations for consistency
             $trip = Trip::create([
                 'owner_id' => $ownerId,
+                'trip_number' => $nextTripNumber,
                 'vehicle_id' => $data['vehicle_id'],
                 'driver_id' => $data['driver_id'],
                 'dealer_id' => ($data['dealer_id'] ?? '') === '' ? null : $data['dealer_id'],
@@ -75,7 +80,7 @@ class TripService
             ]);
 
             // Mark the vehicle as 'maintenance' (on-road/unavailable)
-            // Vehicle::where('id', $data['vehicle_id'])->update(['status' => 'maintenance']);
+            Vehicle::where('id', $data['vehicle_id'])->update(['status' => 'maintenance']);
 
             // Send notification to driver
             $driver = User::find($data['driver_id']);
@@ -85,6 +90,65 @@ class TripService
         });
 
         return $trip;
+    }
+
+    /**
+     * Update an existing trip's core details.
+     *
+     * @param int   $tripId  The trip ID to update
+     * @param array $data    Updated attributes
+     * @param int   $ownerId The fleet owner's user ID
+     * @return Trip The updated trip instance
+     */
+    public function updateTrip(int $tripId, array $data, int $ownerId): Trip
+    {
+        $trip = Trip::where('owner_id', $ownerId)->findOrFail($tripId);
+
+        DB::transaction(function () use ($trip, $data) {
+            // If vehicle is changing, handle status updates
+            if ($trip->vehicle_id != $data['vehicle_id']) {
+                // Release old vehicle
+                Vehicle::where('id', $trip->vehicle_id)->update(['status' => 'active']);
+                // Occupy new vehicle
+                Vehicle::where('id', $data['vehicle_id'])->update(['status' => 'maintenance']);
+            }
+
+            $trip->update([
+                'vehicle_id' => $data['vehicle_id'],
+                'driver_id' => $data['driver_id'],
+                'dealer_id' => ($data['dealer_id'] ?? '') === '' ? null : $data['dealer_id'],
+                'from_location' => strtoupper($data['from_location']),
+                'to_location' => strtoupper($data['to_location']),
+                'start_date' => $data['start_date'],
+            ]);
+        });
+
+        return $trip;
+    }
+
+    /**
+     * Delete a trip and all its associated data.
+     *
+     * @param int $tripId  The trip ID to delete
+     * @param int $ownerId The fleet owner's user ID
+     * @return void
+     */
+    public function deleteTrip(int $tripId, int $ownerId): void
+    {
+        $trip = Trip::where('owner_id', $ownerId)->findOrFail($tripId);
+
+        DB::transaction(function () use ($trip) {
+            // Release the vehicle associated with this trip if it was in maintenance
+            if ($trip->status !== 'completed' && $trip->status !== 'settled') {
+                Vehicle::where('id', $trip->vehicle_id)->update(['status' => 'active']);
+            }
+
+            // Cascade deletion for transactions and billings
+            TripTransaction::where('trip_id', $trip->id)->delete();
+            TripBilling::where('trip_id', $trip->id)->delete();
+
+            $trip->delete();
+        });
     }
 
     /**
@@ -223,7 +287,7 @@ class TripService
      * @param string|null $toDate    Filter trips starting on or before this date
      * @return LengthAwarePaginator Paginated trips with a 'calculated_profit' attribute appended
      */
-    public function getFilteredTrips(int $ownerId, ?int $driverId = null, ?string $search = null, ?string $fromDate = null, ?string $toDate = null): LengthAwarePaginator
+    public function getFilteredTrips(int $ownerId, ?int $driverId = null, ?string $search = null, ?string $fromDate = null, ?string $toDate = null, ?string $status = null): LengthAwarePaginator
     {
         $tripQuery = Trip::with(['vehicle', 'driver', 'dealer'])->where('owner_id', $ownerId);
 
@@ -232,13 +296,20 @@ class TripService
             $tripQuery->where('driver_id', $driverId);
         }
 
-        // Apply search filter across trip ID, locations, and vehicle truck number
+        // Apply status filter if provided (Dispatch vs History)
+        if (!empty($status)) {
+            $tripQuery->where('status', $status);
+        }
+
+        // Apply search filter across trip ID, locations, vehicle, driver, and dealer
         if (!empty($search)) {
             $tripQuery->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
                     ->orWhere('from_location', 'like', "%{$search}%")
                     ->orWhere('to_location', 'like', "%{$search}%")
-                    ->orWhereHas('vehicle', fn($v) => $v->where('truck_number', 'like', "%{$search}%"));
+                    ->orWhereHas('vehicle', fn($v) => $v->where('truck_number', 'like', "%{$search}%"))
+                    ->orWhereHas('driver', fn($d) => $d->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('dealer', fn($de) => $de->where('company_name', 'like', "%{$search}%"));
             });
         }
 
@@ -296,7 +367,7 @@ class TripService
             'ownerRec' => $ownerRec,
         ]);
 
-        return $pdf->download('Trip-Ledger-T' . $trip->id . '.pdf');
+        return $pdf->download('Trip-Ledger-T' . $trip->trip_number . '.pdf');
     }
 
     /**

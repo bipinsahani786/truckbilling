@@ -7,7 +7,7 @@
                 <div class="w-8 h-8 bg-[#0A0A0A] rounded-md flex items-center justify-center group-hover:scale-105 transition-transform">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
-                <span class="text-xl font-extrabold tracking-tight text-[#0A0A0A]">Zytrixon.</span>
+                <span class="text-xl font-extrabold tracking-tight text-[#0A0A0A]">JMD TRUCK MANAGEMENT.</span>
             </a>
         </div>
 
@@ -23,7 +23,7 @@
                 <div class="mt-2">
                     <input wire:model="login_id" id="login_id" type="text" required autofocus
                         class="block w-full px-4 py-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100 focus:border-slate-400 focus:bg-white transition-all text-sm font-medium shadow-[0_2px_10px_rgb(0,0,0,0.02)]" 
-                        placeholder="admin@zytrixon.com or 9876543210" />
+                        placeholder="admin@jmdtrucks.com or 9876543210" />
                 </div>
                 @error('login_id') <p class="mt-1.5 text-xs text-red-500 font-semibold">{{ $message }}</p> @enderror
             </div>
@@ -74,7 +74,7 @@
         
         <div class="relative z-10 px-16 text-left max-w-lg">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/80 text-xs font-bold tracking-wide uppercase mb-6">
-                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Zytrixon Tech
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> JMD TRUCK MANAGEMENT
             </div>
             
             <h3 class="text-4xl font-extrabold text-white tracking-tight leading-[1.15] mb-6">

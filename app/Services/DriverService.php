@@ -56,7 +56,7 @@ class DriverService
                 'owner_id' => $ownerId,
                 'name' => $data['name'],
                 'mobile_number' => $data['mobile_number'],
-                'email' => $data['email'] ?: $data['mobile_number'] . '@driver.zytrixon.com',
+                'email' => $data['email'] ?: $data['mobile_number'] . '@driver.jmdtrucks.com',
                 'password' => $data['password'],
                 'address' => $data['address'] ?? null,
                 'blood_group' => $data['blood_group'] ?? null,

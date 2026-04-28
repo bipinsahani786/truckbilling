@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'Zytrixon Solutions - Tailored for Logistics')
+@section('title', 'JMD TRUCK MANAGEMENT Solutions - Tailored for Logistics')
 
 @section('content')
     <!-- HERO SECTION -->
@@ -50,7 +50,7 @@
                     </div>
                     <h2 class="text-xs font-black text-indigo-400 tracking-[0.2em] uppercase mb-4 inline-block">Small Business</h2>
                     <h3 class="text-3xl lg:text-5xl font-[900] text-white mb-6 tracking-tight">Individual Truck Owners</h3>
-                    <p class="text-dribbble-muted font-medium text-lg leading-relaxed mb-10">Stop managing your business from a pocket diary. Zytrixon helps you transition to a digital system where every expense is recorded instantly on your phone.</p>
+                    <p class="text-dribbble-muted font-medium text-lg leading-relaxed mb-10">Stop managing your business from a pocket diary. JMD TRUCK MANAGEMENT helps you transition to a digital system where every expense is recorded instantly on your phone.</p>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                         <div class="p-5 rounded-2xl glass-card border border-white/5 hover:border-indigo-500/30 transition-all">
@@ -93,7 +93,7 @@
                     </div>
                     <h2 class="text-xs font-black text-rose-400 tracking-[0.2em] uppercase mb-4 inline-block">Enterprise Growth</h2>
                     <h3 class="text-3xl lg:text-5xl font-[900] text-white mb-6 tracking-tight">Medium & Large Fleets</h3>
-                    <p class="text-dribbble-muted font-medium text-lg leading-relaxed mb-10">When you have 20+ trucks, visibility becomes a nightmare. Zytrixon centralizes your operations with advanced driver-wallet management and multi-party ledgers.</p>
+                    <p class="text-dribbble-muted font-medium text-lg leading-relaxed mb-10">When you have 20+ trucks, visibility becomes a nightmare. JMD TRUCK MANAGEMENT centralizes your operations with advanced driver-wallet management and multi-party ledgers.</p>
                     
                     <div class="space-y-6">
                         <div class="p-6 glass-card border border-white/5 rounded-3xl hover:border-rose-500/30 transition-all group">

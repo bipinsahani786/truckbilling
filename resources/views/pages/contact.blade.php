@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'Contact Zytrixon Support')
+@section('title', 'Contact JMD TRUCK MANAGEMENT Support')
 
 @section('content')
     <!-- HERO SECTION -->
@@ -56,8 +56,8 @@
                             <div>
                                 <h4 class="text-xl font-black text-white mb-2">Electronic Support</h4>
                                 <p class="text-dribbble-muted font-medium leading-relaxed">
-                                    <a href="mailto:support@zytrixon.com" class="hover:text-indigo-400 transition-colors">support@zytrixon.com</a> <br> 
-                                    <a href="mailto:sales@zytrixon.com" class="hover:text-indigo-400 transition-colors">sales@zytrixon.com</a>
+                                    <a href="mailto:support@jmdtrucks.com" class="hover:text-indigo-400 transition-colors">support@jmdtrucks.com</a> <br> 
+                                    <a href="mailto:sales@jmdtrucks.com" class="hover:text-indigo-400 transition-colors">sales@jmdtrucks.com</a>
                                 </p>
                             </div>
                         </div>
@@ -146,7 +146,7 @@
                     <div class="p-8">
                         <h4 class="text-xl font-black text-white mb-3">Implementation Hub</h4>
                         <p class="text-dribbble-muted text-sm font-medium leading-relaxed mb-6">
-                            Hands-on technical assistance for digitizing your paper records. We help you migrate your entire ledger system to Zytrixon in days, not months.
+                            Hands-on technical assistance for digitizing your paper records. We help you migrate your entire ledger system to JMD TRUCK MANAGEMENT in days, not months.
                         </p>
                         <div class="flex items-center gap-2 text-rose-400 text-xs font-black uppercase tracking-widest">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>

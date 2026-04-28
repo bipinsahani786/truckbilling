@@ -11,7 +11,7 @@
                     <div class="w-8 h-8 bg-white rounded-md flex items-center justify-center group-hover:scale-105 transition-transform">
                         <svg class="w-4 h-4 text-[#0A0A0A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    <span class="text-xl font-extrabold tracking-tight text-white">Zytrixon.</span>
+                    <span class="text-xl font-extrabold tracking-tight text-white">JMD TRUCK MANAGEMENT.</span>
                 </a>
             </div>
             
@@ -19,7 +19,7 @@
                 Build your fleet's<br>digital foundation.
             </h3>
             <p class="text-slate-400 text-lg font-medium leading-relaxed mb-12">
-                Join top transport owners who use Zytrixon Tech to track expenses, manage drivers, and scale their logistics.
+                Join top transport owners who use JMD TRUCK MANAGEMENT to track expenses, manage drivers, and scale their logistics.
             </p>
             
             <div class="space-y-6">
@@ -52,7 +52,7 @@
                 <div class="w-8 h-8 bg-[#0A0A0A] rounded-md flex items-center justify-center group-hover:scale-105 transition-transform">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
-                <span class="text-xl font-extrabold tracking-tight text-[#0A0A0A]">Zytrixon.</span>
+                <span class="text-xl font-extrabold tracking-tight text-[#0A0A0A]">JMD TRUCK MANAGEMENT.</span>
             </a>
         </div>
 
@@ -78,7 +78,7 @@
                     <div class="mt-2">
                         <input wire:model="company_name" id="company_name" type="text"
                             class="block w-full px-4 py-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100 focus:border-slate-400 focus:bg-white transition-all text-sm font-medium shadow-[0_2px_10px_rgb(0,0,0,0.02)]" 
-                            placeholder="Zytrixon Logistics" />
+                            placeholder="JMD TRUCK MANAGEMENT" />
                     </div>
                     @error('company_name') <p class="mt-1.5 text-xs text-red-500 font-semibold">{{ $message }}</p> @enderror
                 </div>

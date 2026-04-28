@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Zytrixon Pro</title>
+    <title>JMD TRUCK MANAGEMENT Pro</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -42,7 +42,7 @@
                                 d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <span class="text-sm font-[800] tracking-tighter text-slate-900 uppercase">Zytrixon</span>
+                    <span class="text-[11px] font-[800] tracking-tighter text-slate-900 uppercase leading-none">JMD TRUCK MANAGEMENT</span>
                 </a>
             </div>
 
@@ -195,7 +195,7 @@
 
             <header class="h-14 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Zytrixon Panel</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden md:block">JMD TRUCK MANAGEMENT Panel</span>
                     <span class="h-4 w-[1px] bg-slate-200 hidden sm:block"></span>
 
                     <h2 class="text-sm font-bold text-slate-900">

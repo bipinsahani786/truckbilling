@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'Zytrixon')) - Professional Fleet Management</title>
+    <title>@yield('title', config('app.name', 'JMD TRUCK MANAGEMENT')) - Professional Fleet Management</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -470,7 +470,7 @@
             <div class="header-ai-bg"></div>
             
             <!-- Header Summer Background Elements -->
-            <div class="footer-sun" style="top: -20px; right: 10%; width: 80px; height: 80px; opacity: 0.5;"></div>
+            <div class="footer-sun" style="top: -20px; right: 5%; width: 60px; height: 60px; opacity: 0.4;"></div>
             <div class="header-moon"></div>
         </div>
 
@@ -488,27 +488,26 @@
                             </svg>
                         </div>
                         <!-- Branded Typography -->
-                        <span class="font-[900] tracking-tighter text-white uppercase text-2xl md:text-3xl transition-all duration-500 group-hover:text-indigo-400">
-                            ZYTRIXON
+                        <span class="font-[900] tracking-tighter text-white uppercase text-xs sm:text-sm md:text-base lg:text-lg transition-all duration-500 group-hover:text-indigo-400 whitespace-nowrap">
+                            JMD TRUCK MANAGEMENT
                         </span>
                     </a>
                 </div>
 
-                <!-- Desktop Links -->
-                <div class="hidden md:flex items-center gap-10">
-                    <a href="{{ route('welcome') }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Home</a>
-                    <a href="{{ Route::has('features') ? route('features') : '#features' }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Features</a>
-                    <a href="{{ Route::has('solutions') ? route('solutions') : '#solutions' }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Solutions</a>
-                    <a href="#fleet" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Fleet</a>
-                    <a href="{{ Route::has('contact') ? route('contact') : '#contact' }}" class="text-[15px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link">Support</a>
+                <div class="hidden lg:flex items-center gap-4 xl:gap-8">
+                    <a href="{{ route('welcome') }}" class="text-[11px] xl:text-[13px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link whitespace-nowrap">Home</a>
+                    <a href="{{ Route::has('features') ? route('features') : '#features' }}" class="text-[11px] xl:text-[13px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link whitespace-nowrap">Features</a>
+                    <a href="{{ Route::has('solutions') ? route('solutions') : '#solutions' }}" class="text-[11px] xl:text-[13px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link whitespace-nowrap">Solutions</a>
+                    <a href="#fleet" class="text-[11px] xl:text-[13px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link whitespace-nowrap">Fleet</a>
+                    <a href="{{ Route::has('contact') ? route('contact') : '#contact' }}" class="text-[11px] xl:text-[13px] font-black uppercase tracking-widest text-dribbble-light ai-nav-link whitespace-nowrap">Support</a>
                 </div>
 
-                <div class="hidden md:flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 xl:gap-4">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-6 py-2.5 bg-indigo-600 rounded-lg text-[13px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/20">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="px-3 xl:px-6 py-2.5 bg-indigo-600 rounded-lg text-[10px] xl:text-[12px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/20 whitespace-nowrap">Dashboard</a>
                     @else
-                        <a href="{{ route('login') }}" class="px-6 py-2.5 bg-white/10 border border-white/20 rounded-lg text-[13px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-all duration-300">Sign In</a>
-                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-indigo-600 rounded-lg text-[13px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/30">Start Free</a>
+                        <a href="{{ route('login') }}" class="px-3 xl:px-6 py-2.5 bg-white/10 border border-white/20 rounded-lg text-[10px] xl:text-[12px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-all duration-300 whitespace-nowrap">Sign In</a>
+                        <a href="{{ route('register') }}" class="px-3 xl:px-6 py-2.5 bg-indigo-600 rounded-lg text-[10px] xl:text-[12px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all duration-300 shadow-md shadow-indigo-600/30 whitespace-nowrap">Start Free</a>
                     @endauth
                 </div>
 
@@ -593,7 +592,7 @@
                     <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    Zytrixon
+                    JMD TRUCK MANAGEMENT
                     </a>
                     <p class="text-dribbble-muted text-sm font-medium leading-relaxed">
                     Premium logistics and billing software designed for the modern transport network.
@@ -640,7 +639,7 @@
                         </li>
                         <li class="flex items-center gap-2 text-dribbble-muted text-xs font-medium">
                             <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                            support@zytrixon.co
+                            support@jmdtrucks.com
                         </li>
                     </ul>
                     <div class="flex gap-3">
@@ -663,7 +662,7 @@
 
             <div class="border-t border-dribbble-line/20 pt-8 text-center md:flex md:justify-between md:items-center">
                 <p class="text-dribbble-muted text-sm font-medium mb-4 md:mb-0">
-                    &copy; {{ date('Y') }} Zytrixon Inc. All rights reserved.
+                    &copy; {{ date('Y') }} JMD TRUCK MANAGEMENT Inc. All rights reserved.
                 </p>
                 <div class="flex justify-center gap-4">
                     <a href="#" class="text-dribbble-muted hover:text-dribbble-light transition-colors">

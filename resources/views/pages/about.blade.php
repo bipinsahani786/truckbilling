@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'About Zytrixon - Mission and Vision')
+@section('title', 'About JMD TRUCK MANAGEMENT - Mission and Vision')
 
 @section('content')
     <!-- HERO SECTION -->
@@ -35,7 +35,7 @@
                     <h2 class="text-xs font-black text-rose-400 tracking-[0.2em] uppercase mb-4">Our Roots</h2>
                     <h3 class="text-3xl lg:text-5xl font-[900] text-white mb-8 tracking-tight">From Bihar to the Nation.</h3>
                     <p class="text-dribbble-muted text-lg font-medium leading-relaxed mb-8">
-                        Zytrixon started in the heart of Bihar, where we saw transport owners struggling with lost bills, driver management, and inaccurate ledgers. We realized that simple technology could solve massive headaches for small fleet owners.
+                        JMD TRUCK MANAGEMENT started in the heart of Bihar, where we saw transport owners struggling with lost bills, driver management, and inaccurate ledgers. We realized that simple technology could solve massive headaches for small fleet owners.
                     </p>
                     <p class="text-dribbble-muted text-lg font-medium leading-relaxed mb-10">
                         Today, we've grown into a modern platform that serves businesses across Patna, Delhi, and Mumbai, providing enterprise-grade fleet intelligence to everyone.
@@ -55,7 +55,7 @@
                     <div class="group relative">
                         <div class="absolute -inset-4 bg-indigo-500/10 blur-2xl rounded-[4rem] group-hover:bg-indigo-500/20 transition-all duration-700"></div>
                         <div class="relative rounded-[3.5rem] overflow-hidden border border-white/10 shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
-                            <img src="{{ asset('zytrixon_hero_3d_truck_1773676669765.png') }}" class="w-full h-full object-cover" alt="Zytrixon Vision">
+                            <img src="{{ asset('zytrixon_hero_3d_truck_1773676669765.png') }}" class="w-full h-full object-cover" alt="JMD TRUCK MANAGEMENT Vision">
                         </div>
                     </div>
                 </div>
@@ -134,7 +134,7 @@
                 Join the <span class="text-indigo-400">logistics revolution.</span>
             </h2>
             <p class="text-dribbble-muted text-lg lg:text-xl mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
-                Experience the power of Zytrixon and see why thousands of transporters trust us with their daily operations.
+                Experience the power of JMD TRUCK MANAGEMENT and see why thousands of transporters trust us with their daily operations.
             </p>
             
             <div class="flex flex-col sm:flex-row items-center justify-center gap-6">

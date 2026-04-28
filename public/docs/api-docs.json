@@ -1,16 +1,16 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Zytrixon Truck Billing API",
-        "description": "Official API documentation for the Zytrixon Truck Billing mobile application.",
+        "title": "JMD TRUCK MANAGEMENT Truck Billing API",
+        "description": "Official API documentation for the JMD TRUCK MANAGEMENT Truck Billing mobile application.",
         "contact": {
-            "email": "admin@zytrixon.com"
+            "email": "admin@JMD TRUCK MANAGEMENT.com"
         },
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "https://truckdriving.zytrixontech.com",
+            "url": "https://truckdriving.JMD TRUCK MANAGEMENTtech.com",
             "description": "Production Server"
         },
         {
@@ -136,7 +136,7 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "admin@zytrixon.com"
+                                        "example": "admin@JMD TRUCK MANAGEMENT.com"
                                     },
                                     "password": {
                                         "type": "string",
@@ -871,7 +871,7 @@
                                     },
                                     "email": {
                                         "type": "string",
-                                        "example": "driver@zytrixon.com",
+                                        "example": "driver@JMD TRUCK MANAGEMENT.com",
                                         "nullable": true
                                     },
                                     "password": {
@@ -1000,7 +1000,7 @@
                                     },
                                     "email": {
                                         "type": "string",
-                                        "example": "driver@zytrixon.com",
+                                        "example": "driver@JMD TRUCK MANAGEMENT.com",
                                         "nullable": true
                                     },
                                     "password": {

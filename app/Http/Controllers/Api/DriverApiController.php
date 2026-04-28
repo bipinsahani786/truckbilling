@@ -64,7 +64,7 @@ class DriverApiController extends BaseController
                     properties: [
                         new OA\Property(property: 'name', type: 'string', example: 'Driver John'),
                         new OA\Property(property: 'mobile_number', type: 'string', example: '9876543210'),
-                        new OA\Property(property: 'email', type: 'string', example: 'driver@zytrixon.com', nullable: true),
+                        new OA\Property(property: 'email', type: 'string', example: 'driver@jmdtrucks.com', nullable: true),
                         new OA\Property(property: 'password', type: 'string', format: 'password', example: 'password123'),
                         new OA\Property(property: 'license_number', type: 'string', example: 'DL-123456789', nullable: true),
                         new OA\Property(property: 'aadhar_number', type: 'string', example: '123456789012', nullable: true),
@@ -158,7 +158,7 @@ class DriverApiController extends BaseController
                         new OA\Property(property: '_method', type: 'string', example: 'PUT'),
                         new OA\Property(property: 'name', type: 'string', example: 'Driver John Updated'),
                         new OA\Property(property: 'mobile_number', type: 'string', example: '9876543210'),
-                        new OA\Property(property: 'email', type: 'string', example: 'driver@zytrixon.com', nullable: true),
+                        new OA\Property(property: 'email', type: 'string', example: 'driver@jmdtrucks.com', nullable: true),
                         new OA\Property(property: 'password', type: 'string', format: 'password', example: 'newpassword123', nullable: true),
                         new OA\Property(property: 'license_number', type: 'string', example: 'DL-123456789', nullable: true),
                         new OA\Property(property: 'aadhar_number', type: 'string', example: '123456789012', nullable: true),
