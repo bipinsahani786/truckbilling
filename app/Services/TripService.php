@@ -76,6 +76,7 @@ class TripService
                 'from_location' => strtoupper($data['from_location']),
                 'to_location' => strtoupper($data['to_location']),
                 'start_date' => $data['start_date'],
+                'party_freight_amount' => $data['party_freight_amount'],
                 'status' => 'in_transit',
             ]);
 
@@ -120,6 +121,7 @@ class TripService
                 'from_location' => strtoupper($data['from_location']),
                 'to_location' => strtoupper($data['to_location']),
                 'start_date' => $data['start_date'],
+                'party_freight_amount' => $data['party_freight_amount'],
             ]);
         });
 

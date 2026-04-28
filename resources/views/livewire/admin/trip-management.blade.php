@@ -58,8 +58,11 @@
                         @forelse($trips as $trip)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3">
-                                    <p class="text-sm font-black text-slate-900 uppercase">T-{{ $trip->trip_number }} | {{ $trip->from_location }} ➔ {{ $trip->to_location }}</p>
-                                    <p class="text-xs text-slate-500 mt-1 truncate max-w-[200px]">{{ $trip->start_date ? \Carbon\Carbon::parse($trip->start_date)->format('d M Y') : 'N/A' }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-black rounded">T-{{ $trip->trip_number }}</span>
+                                        <p class="text-sm font-black text-slate-900 uppercase">{{ $trip->from_location }} ➔ {{ $trip->to_location }}</p>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1">{{ $trip->start_date ? \Carbon\Carbon::parse($trip->start_date)->format('d M Y') : 'N/A' }}</p>
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="text-sm font-bold text-slate-900 uppercase">{{ $trip->vehicle->truck_number ?? 'N/A' }}</p>
@@ -158,6 +161,21 @@
                 <div>
                     <label class="text-xs font-bold text-emerald-600 uppercase">To Location *</label>
                     <input type="text" wire:model="to_location" required placeholder="Destination City" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Trip Start Date *</label>
+                    <input type="date" wire:model="start_date" required class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-emerald-600 uppercase">Party Freight Amount (Revenue) *</label>
+                    <div class="relative mt-1">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                        <input type="number" wire:model="party_freight_amount" required placeholder="0.00" class="w-full pl-8 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none">
+                    </div>
+                    @error('party_freight_amount') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
                 </div>
             </div>
 
