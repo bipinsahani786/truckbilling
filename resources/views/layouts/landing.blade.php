@@ -15,6 +15,9 @@
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <!-- Custom Tailwind Configuration for Dark Theme -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -387,6 +390,49 @@
             0% { transform: translateY(-50%); }
             100% { transform: translateY(50%); }
         }
+
+        /* Professional Hamburger Toggle */
+        .hamburger-btn {
+            width: 28px;
+            height: 18px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 50;
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: #EBEBEB;
+            border-radius: 4px;
+            transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+        }
+        .hamburger-btn.is-active span:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+            background-color: #f97316;
+        }
+        .hamburger-btn.is-active span:nth-child(2) {
+            opacity: 0;
+            transform: translateX(-15px);
+        }
+        .hamburger-btn.is-active span:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+            background-color: #f97316;
+        }
+
+        /* Menu Item Stagger Animations */
+        .menu-item-enter {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        .menu-item-enter-active {
+            opacity: 1;
+            transform: translateX(0);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-indigo-500/30 selection:text-white relative">
@@ -413,16 +459,20 @@
          :class="{ 
              'bg-white/10 backdrop-blur-3xl border-white/20 shadow-2xl': scrolled, 
              'bg-white/5 backdrop-blur-xl border-white/10': !scrolled,
-             'is-night': isNight
+             'is-night': isNight,
+             'rounded-b-none': mobileMenu
          }"
-         class="fixed top-4 left-4 right-4 z-[100] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] moving-road-container group">
+         class="fixed top-4 left-4 right-4 z-[100] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] group">
         
-        <!-- AI Hidden Background -->
-        <div class="header-ai-bg"></div>
-        
-        <!-- Header Summer Background Elements -->
-        <div class="footer-sun" style="top: -20px; right: 10%; width: 80px; height: 80px; opacity: 0.5;"></div>
-        <div class="header-moon"></div>
+        <!-- Background Wrapper (to contain animations within rounded corners without clipping the menu) -->
+        <div class="absolute inset-0 rounded-xl overflow-hidden moving-road-container pointer-events-none">
+            <!-- AI Hidden Background -->
+            <div class="header-ai-bg"></div>
+            
+            <!-- Header Summer Background Elements -->
+            <div class="footer-sun" style="top: -20px; right: 10%; width: 80px; height: 80px; opacity: 0.5;"></div>
+            <div class="header-moon"></div>
+        </div>
 
         <div class="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
             <div class="flex items-center justify-between h-20 md:h-24 transition-none">
@@ -463,33 +513,63 @@
                 </div>
 
                 <!-- Mobile Toggle -->
-                <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 rounded-lg text-dribbble-light hover:bg-white/10 transition-colors">
-                    <svg class="w-6 h-6" x-show="!mobileMenu" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                    <svg class="w-6 h-6" x-show="mobileMenu" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button @click="mobileMenu = !mobileMenu" class="md:hidden p-3 rounded-xl hover:bg-white/5 transition-all duration-300 relative z-[210]">
+                    <div class="hamburger-btn" :class="{ 'is-active': mobileMenu }">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Menu -->
         <div x-show="mobileMenu" 
-             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-500"
              x-transition:enter-start="opacity-0 -translate-y-4"
              x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
+             @click.away="mobileMenu = false"
              x-cloak
-             class="absolute top-full left-0 right-0 bg-dribbble-base border-b border-dribbble-line/30 shadow-2xl md:hidden p-8 space-y-6">
-            <a @click="mobileMenu = false" href="{{ route('features') ?? '#features' }}" class="block text-xl font-bold text-dribbble-light">Features</a>
-            <a @click="mobileMenu = false" href="{{ route('solutions') ?? '#' }}" class="block text-xl font-bold text-dribbble-light">Solutions</a>
-            <a @click="mobileMenu = false" href="{{ route('about') ?? '#' }}" class="block text-xl font-bold text-dribbble-light">About</a>
-            <a @click="mobileMenu = false" href="{{ route('contact') ?? '#' }}" class="block text-xl font-bold text-dribbble-light">Support</a>
-            <hr class="border-dribbble-line/30">
-            @auth
-                <a href="{{ route('dashboard') }}" class="block text-xl font-bold text-indigo-400">Dashboard</a>
-            @else
-                <div class="grid grid-cols-2 gap-4">
-                    <a href="{{ route('login') }}" class="flex items-center justify-center py-4 border border-dribbble-line rounded-2xl font-bold text-dribbble-light hover:bg-dribbble-card/30">Log in</a>
-                    <a href="{{ route('register') }}" class="flex items-center justify-center py-4 bg-indigo-600 rounded-2xl text-white font-bold hover:bg-indigo-500 shadow-[0_0_20px_rgba(79,70,229,0.3)]">Sign Up</a>
+             :class="{ 
+                 'bg-[#060B18]/98 backdrop-blur-3xl border-indigo-500/20': scrolled, 
+                 'bg-[#060B18]/95 backdrop-blur-3xl border-white/10': !scrolled 
+             }"
+             class="absolute top-full left-[-1px] right-[-1px] z-[200] border border-t-0 shadow-[0_40px_80px_rgba(0,0,0,0.6)] md:hidden p-10 rounded-b-[2rem] overflow-hidden group">
+            
+            <!-- Replicate Header Background Effects (AI, Moon) -->
+            <div class="absolute inset-0 moving-road-container pointer-events-none overflow-hidden rounded-b-[2rem]">
+                <div class="header-ai-bg" style="opacity: 0.2;"></div>
+
+
+                <div class="header-moon" style="bottom: 10%; left: 5%; width: 100px; height: 100px;"></div>
+            </div>
+
+            <!-- Animated Background Glows -->
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600/20 blur-[80px] rounded-full animate-pulse"></div>
+            <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-orange-600/10 blur-[80px] rounded-full animate-pulse delay-700"></div>
+
+            <div class="relative z-10 flex flex-col gap-8">
+                <div class="space-y-6">
+                    <a x-show="mobileMenu" x-transition:enter="menu-item-enter-active delay-[100ms]" href="{{ Route::has('features') ? route('features') : '#features' }}" class="block text-3xl font-[900] tracking-tighter text-white hover:text-indigo-400 transition-all duration-300 transform hover:translate-x-2">Features</a>
+                    <a x-show="mobileMenu" x-transition:enter="menu-item-enter-active delay-[200ms]" href="{{ Route::has('solutions') ? route('solutions') : '#solutions' }}" class="block text-3xl font-[900] tracking-tighter text-white hover:text-indigo-400 transition-all duration-300 transform hover:translate-x-2">Solutions</a>
+                    <a x-show="mobileMenu" x-transition:enter="menu-item-enter-active delay-[300ms]" href="#fleet" class="block text-3xl font-[900] tracking-tighter text-white hover:text-indigo-400 transition-all duration-300 transform hover:translate-x-2">Fleet</a>
+                    <a x-show="mobileMenu" x-transition:enter="menu-item-enter-active delay-[400ms]" href="{{ Route::has('contact') ? route('contact') : '#contact' }}" class="block text-3xl font-[900] tracking-tighter text-white hover:text-indigo-400 transition-all duration-300 transform hover:translate-x-2">Support</a>
                 </div>
-            @endauth
+
+                <hr class="border-white/5 my-2">
+
+                <div x-show="mobileMenu" x-transition:enter="menu-item-enter-active delay-[500ms]" class="grid grid-cols-1 gap-4">
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="w-full py-5 bg-indigo-600 rounded-2xl text-center text-sm font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all">Dashboard</a>
+                    @else
+                        <a href="{{ route('login') }}" class="w-full py-5 border border-white/10 rounded-2xl text-center text-sm font-black uppercase tracking-[0.2em] text-white hover:bg-white/5 transition-all">Sign In</a>
+                        <a href="{{ route('register') }}" class="w-full py-5 bg-indigo-600 rounded-2xl text-center text-sm font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-indigo-600/40 hover:bg-indigo-500 transition-all">Start Free</a>
+                    @endauth
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -552,20 +632,20 @@
                     <ul class="space-y-3 mb-6">
                         <li class="flex items-center gap-2 text-dribbble-muted text-xs font-medium">
                             <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 7V5z"></path></svg>
-                            +91 98765 43210
+                            +919798617029
                         </li>
                         <li class="flex items-center gap-2 text-dribbble-muted text-xs font-medium">
                             <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 7V5z"></path></svg>
-                            +91 88888 77777
+                            +917049711475
                         </li>
                         <li class="flex items-center gap-2 text-dribbble-muted text-xs font-medium">
                             <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                            support@zytrixon.com
+                            support@zytrixon.co
                         </li>
                     </ul>
                     <div class="flex gap-3">
                         <a href="#" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-dribbble-muted hover:text-white hover:bg-indigo-600 transition-all border border-white/5">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.58m4-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
                         </a>
                         <a href="#" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-dribbble-muted hover:text-white hover:bg-indigo-600 transition-all border border-white/5">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-2.201c0-1.137.496-1.799 1.795-1.799h2.205v-4.403c-.382-.046-1.693-.197-3.218-.197-3.186 0-5.382 1.944-5.382 5.538v3.063z"></path></svg>
