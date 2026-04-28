@@ -34,6 +34,10 @@ class Dashboard extends Component
     public $status_filter = '';
     /** @var string Search query for live trip feed */
     public $search = '';
+    /** @var int|null Start index for trip range analysis */
+    public $trip_from;
+    /** @var int|null End index for trip range analysis */
+    public $trip_to;
 
     /**
      * Initialize filters with sensible defaults.
@@ -54,6 +58,8 @@ class Dashboard extends Component
         $this->date_to = Carbon::now()->format('Y-m-d');
         $this->status_filter = '';
         $this->search = '';
+        $this->trip_from = null;
+        $this->trip_to = null;
     }
 
     /**
@@ -77,7 +83,9 @@ class Dashboard extends Component
             $this->date_from,
             $this->date_to,
             $this->status_filter,
-            $this->search
+            $this->search,
+            $this->trip_from !== null && $this->trip_from !== '' ? (int) $this->trip_from : null,
+            $this->trip_to !== null && $this->trip_to !== '' ? (int) $this->trip_to : null
         );
 
         // Get chart data for the last 15 days (freight, recovery, expense)
@@ -103,6 +111,7 @@ class Dashboard extends Component
             'chartFreight' => $chartData['freight'],
             'chartRecovery' => $chartData['recovery'],
             'chartExpense' => $chartData['expense'],
+            'actualTripCount' => $dashboardData['actualTripCount'],
         ]);
     }
 }

@@ -31,6 +31,76 @@
         </div>
     </div>
 
+    <!-- Trip Range Selection Section -->
+    <div class="bg-slate-900 p-6 rounded-3xl shadow-2xl flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 relative overflow-hidden border border-slate-800">
+        <!-- Background Glows -->
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-600/10 rounded-full blur-[100px]"></div>
+        <div class="absolute -left-20 -top-20 w-64 h-64 bg-emerald-600/5 rounded-full blur-[100px]"></div>
+
+        <div class="flex items-center gap-5 relative z-10">
+            <div class="w-14 h-14 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-500/30 shadow-inner">
+                <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-black text-white uppercase tracking-tight leading-none mb-2">Trip Range Analysis</h3>
+                @if($trip_from && $trip_to)
+                    <p class="text-xs text-emerald-400 font-black uppercase tracking-widest animate-pulse">
+                        Analyzing trips {{ $trip_from }} to {{ $trip_to }}
+                    </p>
+                @else
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] opacity-80">Select trip sequence for batch calculation</p>
+                @endif
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full xl:w-auto relative z-10">
+            <div class="flex items-center gap-3 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50">
+                <div class="flex items-center bg-slate-900 rounded-xl px-4 py-3 border border-slate-700 focus-within:border-indigo-500 transition-all">
+                    <span class="text-[10px] font-black text-slate-500 uppercase mr-4 whitespace-nowrap">From Trip</span>
+                    <input type="number" wire:model="trip_from" placeholder="e.g. 1" class="bg-transparent text-base font-black text-white w-20 outline-none placeholder:text-slate-700">
+                </div>
+                <div class="flex items-center bg-slate-900 rounded-xl px-4 py-3 border border-slate-700 focus-within:border-indigo-500 transition-all">
+                    <span class="text-[10px] font-black text-slate-500 uppercase mr-4 whitespace-nowrap">To Trip</span>
+                    <input type="number" wire:model="trip_to" placeholder="e.g. 10" class="bg-transparent text-base font-black text-white w-20 outline-none placeholder:text-slate-700">
+                </div>
+                <button wire:click="$refresh" class="group flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
+                    <span wire:loading.remove wire:target="$refresh">Run Analysis</span>
+                    <span wire:loading wire:target="$refresh" class="flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Analyzing...
+                    </span>
+                    <svg wire:loading.remove wire:target="$refresh" class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+
+            @if($trip_from && $trip_to)
+            <div class="flex-1 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 flex flex-col justify-center">
+                <p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">
+                    @if($actualTripCount < (abs($trip_to - $trip_from) + 1))
+                        <span class="text-amber-400">Notice: Only {{ $actualTripCount }} trips found in this range</span>
+                    @else
+                        Batch Performance
+                    @endif
+                </p>
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-xs font-bold text-white">Your {{ $actualTripCount }} trips gives you </span>
+                        <span class="text-base font-black text-emerald-400">₹{{ number_format($netProfit) }} profit</span>
+                    </div>
+                    <div class="flex items-baseline gap-2 opacity-80">
+                        <span class="text-[10px] font-bold text-slate-300">and </span>
+                        <span class="text-xs font-black text-rose-400">₹{{ number_format($totalExpenses) }} is the loss (expenses)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button wire:click="resetFilters" class="p-4 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-2xl transition-all border border-rose-500/20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            @endif
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         <div class="bg-white p-5 rounded-2xl border-b-4 border-indigo-500 shadow-sm relative overflow-hidden group">
