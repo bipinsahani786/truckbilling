@@ -56,6 +56,8 @@ class TripManagement extends Component
     public $to_location = '';
     /** @var string Trip start date */
     public $start_date = '';
+    /** @var string Initial party freight amount */
+    public $party_freight_amount = '';
 
     /** @var int|null ID of the trip being edited (null for new trips) */
     public $editingTripId = null;
@@ -182,6 +184,7 @@ class TripManagement extends Component
         $this->from_location = $trip->from_location;
         $this->to_location = $trip->to_location;
         $this->start_date = $trip->start_date;
+        $this->party_freight_amount = $trip->party_freight_amount;
         $this->currentView = 'create'; // Reuse the create form view
     }
 
@@ -196,6 +199,7 @@ class TripManagement extends Component
         $this->dealer_id = '';
         $this->from_location = '';
         $this->to_location = '';
+        $this->party_freight_amount = '';
         $this->start_date = date('Y-m-d');
     }
 
@@ -261,6 +265,7 @@ class TripManagement extends Component
             'from_location' => 'required|string|max:255',
             'to_location' => 'required|string|max:255',
             'start_date' => 'required|date',
+            'party_freight_amount' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -272,6 +277,7 @@ class TripManagement extends Component
                 'from_location' => $this->from_location,
                 'to_location' => $this->to_location,
                 'start_date' => $this->start_date,
+                'party_freight_amount' => $this->party_freight_amount,
             ];
 
             if ($this->editingTripId) {

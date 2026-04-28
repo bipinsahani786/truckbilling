@@ -93,17 +93,7 @@ class DashboardService
 
         // --- Revenue & Profit Calculation ---
         
-        // Revenue is primarily the total freight amount billed to parties
-        $totalFreightFromBilling = TripBilling::whereIn('trip_id', $tripIds)->sum('freight_amount');
-        
-        // For trips that don't have detailed billing entries, check the main trip freight amount
-        $totalFreightFromTrips = (clone $tripQuery)
-            ->whereDoesntHave('transactions', function($q) {
-                // This is a rough way to check if billing exists, but let's be more direct
-            })
-            ->sum('party_freight_amount');
-            
-        // Better: Total Freight is sum of TripBilling for those that have it, 
+        // Calculate Total Freight: Sum of TripBilling for those that have it, 
         // and party_freight_amount for those that don't have TripBilling entries.
         $totalFreight = 0;
         foreach ($allMatchedTrips as $trip) {
