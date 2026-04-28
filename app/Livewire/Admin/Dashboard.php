@@ -32,6 +32,8 @@ class Dashboard extends Component
     public $date_to;
     /** @var string Trip status filter (empty = all statuses) */
     public $status_filter = '';
+    /** @var string Search query for live trip feed */
+    public $search = '';
 
     /**
      * Initialize filters with sensible defaults.
@@ -51,6 +53,7 @@ class Dashboard extends Component
         $this->date_from = Carbon::now()->startOfMonth()->format('Y-m-d');
         $this->date_to = Carbon::now()->format('Y-m-d');
         $this->status_filter = '';
+        $this->search = '';
     }
 
     /**
@@ -73,7 +76,8 @@ class Dashboard extends Component
             $driverId,
             $this->date_from,
             $this->date_to,
-            $this->status_filter
+            $this->status_filter,
+            $this->search
         );
 
         // Get chart data for the last 15 days (freight, recovery, expense)

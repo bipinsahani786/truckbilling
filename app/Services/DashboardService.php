@@ -33,7 +33,7 @@ class DashboardService
      * @param string|null $statusFilter Trip status filter
      * @return array Associative array with all dashboard metrics
      */
-    public function getDashboardData(int $ownerId, bool $isDriver, ?int $driverId = null, ?string $dateFrom = null, ?string $dateTo = null, ?string $statusFilter = null): array
+    public function getDashboardData(int $ownerId, bool $isDriver, ?int $driverId = null, ?string $dateFrom = null, ?string $dateTo = null, ?string $statusFilter = null, ?string $search = null): array
     {
         // Build the base trip query with ownership and optional driver restriction
         $tripQuery = Trip::where('owner_id', $ownerId);
@@ -84,11 +84,22 @@ class DashboardService
         // Pending dues = freight billed minus amount actually recovered
         $pendingDues = max(0, $totalFreight - $totalRecoveries);
 
-        // --- Live Trip Feed (last 5 active/in-progress trips) ---
-        $liveTrips = (clone $tripQuery)
+        // --- Live Trip Feed (active/in-progress trips) ---
+        $liveTripQuery = (clone $tripQuery)
             ->with(['vehicle', 'driver'])
-            ->where('status', '!=', 'completed')
-            ->latest()
+            ->where('status', '!=', 'completed');
+
+        // Apply search to live feed if provided
+        if (!empty($search)) {
+            $liveTripQuery->where(function ($q) use ($search) {
+                $q->whereHas('vehicle', fn($v) => $v->where('truck_number', 'like', "%{$search}%"))
+                    ->orWhereHas('driver', fn($d) => $d->where('name', 'like', "%{$search}%"))
+                    ->orWhere('from_location', 'like', "%{$search}%")
+                    ->orWhere('to_location', 'like', "%{$search}%");
+            });
+        }
+
+        $liveTrips = $liveTripQuery->latest()
             ->take(5)
             ->get();
 

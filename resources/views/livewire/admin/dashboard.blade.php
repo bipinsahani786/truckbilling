@@ -37,7 +37,7 @@
             <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
             <div class="relative z-10">
                 <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Total Revenue</p>
-                <h3 class="text-2xl font-black text-slate-900">RS {{ number_format($totalRevenue) }}</h3>
+                <h3 class="text-2xl font-black text-slate-900">₹{{ number_format($totalRevenue) }}</h3>
             </div>
         </div>
 
@@ -45,19 +45,21 @@
             <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
             <div class="relative z-10">
                 <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Total Expenses</p>
-                <h3 class="text-2xl font-black text-slate-900">RS {{ number_format($totalExpenses) }}</h3>
+                <h3 class="text-2xl font-black text-slate-900">₹{{ number_format($totalExpenses) }}</h3>
             </div>
         </div>
 
+        @unless($isDriver)
         <div class="bg-slate-900 p-5 rounded-2xl shadow-xl relative overflow-hidden group">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
             <div class="relative z-10">
                 <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Net Profitability</p>
                 <h3 class="text-2xl font-black {{ $netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
-                    RS {{ number_format($netProfit) }}
+                    ₹{{ number_format($netProfit) }}
                 </h3>
             </div>
         </div>
+        @endunless
 
         @if($isOwner)
         <div class="bg-white p-5 rounded-2xl border-b-4 border-amber-500 shadow-sm">
@@ -97,22 +99,30 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
-                    </span>
-                    Live Trip Feed
-                </h4>
-                <a href="{{ route('admin.trips') }}" wire:navigate class="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest">View All</a>
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-4 sm:items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                        </span>
+                        Live Trip Feed
+                    </h4>
+                    <span class="h-4 w-[1px] bg-slate-200 hidden sm:block"></span>
+                    <a href="{{ route('admin.trips') }}" wire:navigate class="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-widest">View All</a>
+                </div>
+                
+                <div class="relative flex-1 sm:max-w-[240px]">
+                    <svg class="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search Live Feed..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                </div>
             </div>
             
             <div class="flex-1 overflow-y-auto p-3 space-y-2 max-h-64 no-scrollbar">
                 @forelse($liveTrips as $trip)
                     <div class="bg-white border border-slate-100 p-3 rounded-xl hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-[9px] font-extrabold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded uppercase">T-{{ $trip->id }}</span>
+                            <span class="text-[9px] font-extrabold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded uppercase">T-{{ $trip->trip_number }}</span>
                             <span class="text-[9px] font-bold text-slate-400 uppercase">{{ str_replace('_', ' ', $trip->status) }}</span>
                         </div>
                         <div class="flex justify-between items-end">
@@ -120,10 +130,12 @@
                                 <p class="text-xs font-black text-slate-800 uppercase">{{ $trip->from_location }} <span class="text-indigo-400 px-1">→</span> {{ $trip->to_location }}</p>
                                 <p class="text-[10px] font-bold text-slate-500 mt-0.5">{{ $trip->vehicle->truck_number ?? 'N/A' }} | Dr: {{ explode(' ', $trip->driver->name ?? '')[0] }}</p>
                             </div>
+                            @unless(auth()->user()->hasRole('driver'))
                             <div class="text-right">
                                 <p class="text-[9px] text-slate-400 font-bold uppercase">Net Bal</p>
-                                <p class="text-sm font-black {{ $trip->current_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">RS {{ number_format($trip->current_profit) }}</p>
+                                <p class="text-sm font-black {{ $trip->current_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">₹{{ number_format($trip->current_profit) }}</p>
                             </div>
+                            @endunless
                         </div>
                     </div>
                 @empty

@@ -6,12 +6,12 @@ use OpenApi\Attributes as OA;
 
 #[OA\Info(
     version: "1.0.0",
-    title: "Zytrixon Truck Billing API",
-    description: "Official API documentation for the Zytrixon Truck Billing mobile application.",
-    contact: new OA\Contact(email: "admin@zytrixon.com")
+    title: "JMD TRUCK MANAGEMENT API",
+    description: "Official API documentation for the JMD TRUCK MANAGEMENT mobile application.",
+    contact: new OA\Contact(email: "admin@jmdtrucks.com")
 )]
 #[OA\Server(
-    url: "https://truckdriving.zytrixontech.com",
+    url: "https://api.jmdtrucks.com",
     description: "Production Server"
 )]
 #[OA\Server(

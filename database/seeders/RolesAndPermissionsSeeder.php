@@ -24,10 +24,10 @@ class RolesAndPermissionsSeeder extends Seeder
         // 2. Create the Master Super Admin (Your Account)
         $bipin = User::create([
             'name' => 'Bipin',
-            'email' => 'admin@zytrixon.com',
+            'email' => 'admin@jmdtrucks.com',
             'mobile_number' => '9876543210', // Update with real one later
             'address' => 'Patna',
-            'company_name' => 'Zytrixon Tech',
+            'company_name' => 'JMD TRUCK MANAGEMENT',
             'password' => Hash::make('password'), // Default password
         ]);
         $bipin->assignRole($superAdminRole);

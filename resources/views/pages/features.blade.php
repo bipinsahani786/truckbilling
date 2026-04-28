@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'System Features - Zytrixon Intelligence')
+@section('title', 'System Features - JMD TRUCK MANAGEMENT Intelligence')
 
 @section('content')
     <!-- HERO SECTION -->
@@ -18,7 +18,7 @@
                     Built for the <br> <span class="text-indigo-500">Road Ahead.</span>
                 </h1>
                 <p class="text-xl text-dribbble-muted max-w-2xl mx-auto leading-relaxed mb-10">
-                    Explore the deep feature set that makes Zytrixon the preferred choice for forward-thinking transport companies in India.
+                    Explore the deep feature set that makes JMD TRUCK MANAGEMENT the preferred choice for forward-thinking transport companies in India.
                 </p>
                 <div class="flex justify-center">
                     <div class="w-24 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent rounded-full"></div>
@@ -256,7 +256,7 @@
                 Experience all these <br> <span class="text-indigo-400">features for yourself.</span>
             </h2>
             <p class="text-dribbble-muted text-lg lg:text-xl mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
-                Join thousands of modern fleet owners who use Zytrixon to power their daily operations.
+                Join thousands of modern fleet owners who use JMD TRUCK MANAGEMENT to power their daily operations.
             </p>
             
             <div class="flex flex-col sm:flex-row items-center justify-center gap-6">

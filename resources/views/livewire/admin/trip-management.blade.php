@@ -14,9 +14,18 @@
                     <input type="date" wire:model.live="filter_to_date" class="bg-transparent text-xs font-bold text-slate-600 outline-none px-2 w-full sm:w-auto">
                 </div>
 
-                <div class="relative w-full sm:w-64">
+                <div class="relative w-full sm:w-80">
                     <svg class="absolute left-3 top-3 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search route, truck..." class="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none shadow-sm focus:border-indigo-500">
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search Route, Truck, Driver, Party..." class="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none shadow-sm focus:border-indigo-500 transition-all">
+                </div>
+
+                <div class="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-sm w-full sm:w-auto">
+                    <select wire:model.live="statusFilter" class="bg-transparent text-xs font-bold text-slate-600 outline-none px-3 py-1.5 min-w-[120px]">
+                        <option value="">All Status</option>
+                        <option value="in_transit">🚚 In Transit</option>
+                        <option value="completed">✅ Completed</option>
+                        <option value="settled">💰 Settled</option>
+                    </select>
                 </div>
                 
                 <button wire:click="showCreate" class="w-full sm:w-auto px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-extrabold shadow-md active:scale-95 transition-all whitespace-nowrap">
@@ -39,7 +48,9 @@
                             <th class="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase">Route</th>
                             <th class="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase">Vehicle / Driver</th>
                             <th class="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase text-center">Status</th>
+                            @unless(auth()->user()->hasRole('driver'))
                             <th class="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase text-right">Profit / Loss</th>
+                            @endunless
                             <th class="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase text-right">Action</th>
                         </tr>
                     </thead>
@@ -47,7 +58,7 @@
                         @forelse($trips as $trip)
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3">
-                                    <p class="text-sm font-black text-slate-900 uppercase">T-{{ $trip->id }} | {{ $trip->from_location }} ➔ {{ $trip->to_location }}</p>
+                                    <p class="text-sm font-black text-slate-900 uppercase">T-{{ $trip->trip_number }} | {{ $trip->from_location }} ➔ {{ $trip->to_location }}</p>
                                     <p class="text-xs text-slate-500 mt-1 truncate max-w-[200px]">{{ $trip->start_date ? \Carbon\Carbon::parse($trip->start_date)->format('d M Y') : 'N/A' }}</p>
                                 </td>
                                 <td class="px-4 py-3">
@@ -59,16 +70,26 @@
                                         {{ str_replace('_', ' ', $trip->status) }}
                                     </span>
                                 </td>
+                                @unless(auth()->user()->hasRole('driver'))
                                 <td class="px-4 py-3 text-right">
                                     <p class="text-sm font-black {{ $trip->calculated_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">
                                         ₹{{ number_format($trip->calculated_profit) }}
                                     </p>
                                 </td>
+                                @endunless
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         <a href="{{ route('trip.download', $trip->id) }}" target="_blank" title="Download Bill" class="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                         </a>
+
+                                        <button wire:click="showEdit({{ $trip->id }})" title="Edit Trip" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700 rounded-lg transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+
+                                        <button wire:click="deleteTrip({{ $trip->id }})" wire:confirm="Are you sure you want to delete this trip and all its records? This cannot be undone." title="Delete Trip" class="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
 
                                         <button wire:click="showManage({{ $trip->id }})" class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold shadow-sm transition-colors">
                                             Manage
@@ -93,7 +114,7 @@
             <button wire:click="showList" class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-100">
                 <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </button>
-            <h2 class="text-xl font-black text-slate-900 uppercase">Create New Trip</h2>
+            <h2 class="text-xl font-black text-slate-900 uppercase">{{ $editingTripId ? 'Edit Trip' : 'Create New Trip' }}</h2>
         </div>
 
         <form wire:submit.prevent="saveTrip" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
@@ -141,7 +162,7 @@
             </div>
 
             <button type="submit" wire:loading.attr="disabled" class="w-full py-4 bg-[#0A0A0A] hover:bg-slate-800 text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg transition-all">
-                Dispatch Trip
+                {{ $editingTripId ? 'Update Trip Details' : 'Dispatch Trip' }}
             </button>
         </form>
     </div>
@@ -154,7 +175,7 @@
             <div class="flex items-center gap-3">
                 <button wire:click="showList" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200"><svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg></button>
                 <div>
-                    <h2 class="text-lg font-black uppercase leading-none">T-{{ $tripDetails->id }} | {{ $tripDetails->vehicle->truck_number }}</h2>
+                    <h2 class="text-lg font-black uppercase leading-none">T-{{ $tripDetails->trip_number }} | {{ $tripDetails->vehicle->truck_number }}</h2>
                     <p class="text-xs text-slate-500 font-bold mt-1">{{ $tripDetails->from_location }} ➔ {{ $tripDetails->to_location }}</p>
                 </div>
             </div>
@@ -198,10 +219,12 @@
                     <p class="text-xs text-slate-400 uppercase tracking-widest">Total Kharcha</p>
                     <p class="text-xl font-black text-rose-400 mt-0.5">₹{{ number_format($totalExpense) }}</p>
                 </div>
+                @unless(auth()->user()->hasRole('driver'))
                 <div>
                     <p class="text-xs text-slate-400 uppercase tracking-widest">Net Profit</p>
                     <p class="text-xl font-black {{ $netProfit >= 0 ? 'text-emerald-400' : 'text-rose-500' }} mt-0.5">₹{{ number_format($netProfit) }}</p>
                 </div>
+                @endunless
             </div>
         </div>
 
@@ -216,6 +239,13 @@
                     @if($tripDetails->status !== 'completed')
                         <button wire:click="openTxModal('expense', 'wallet')" class="px-3 py-1.5 bg-rose-600 text-white rounded text-xs font-black shadow-sm">+ ADD</button>
                     @endif
+                </div>
+
+                <div class="px-3 py-2 bg-rose-50/50 border-b border-rose-100">
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.300ms="searchTxDriver" placeholder="Search expenses..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-rose-200 rounded-lg text-[10px] font-bold outline-none focus:border-rose-400">
+                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
                 </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
@@ -253,6 +283,13 @@
                     @if($tripDetails->status !== 'completed')
                         <button wire:click="openTxModal('expense', 'owner_bank')" class="px-3 py-1.5 bg-rose-600 text-white rounded text-xs font-black shadow-sm">+ ADD</button>
                     @endif
+                </div>
+
+                <div class="px-3 py-2 bg-rose-50/50 border-b border-rose-100">
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.300ms="searchTxOwner" placeholder="Search expenses..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-rose-200 rounded-lg text-[10px] font-bold outline-none focus:border-rose-400">
+                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
                 </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
@@ -295,6 +332,13 @@
                         <button wire:click="openTxModal('recovery', 'wallet')" class="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-black shadow-sm">+ ADD</button>
                     @endif
                 </div>
+
+                <div class="px-3 py-2 bg-emerald-50/50 border-b border-emerald-100">
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.300ms="searchRecDriver" placeholder="Search recovery..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold outline-none focus:border-emerald-400">
+                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
                     @forelse($driverRec as $rc)
@@ -330,6 +374,13 @@
                     @if($tripDetails->status !== 'completed')
                         <button wire:click="openTxModal('recovery', 'owner_bank')" class="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-black shadow-sm">+ ADD</button>
                     @endif
+                </div>
+
+                <div class="px-3 py-2 bg-emerald-50/50 border-b border-emerald-100">
+                    <div class="relative">
+                        <input type="text" wire:model.live.debounce.300ms="searchRecOwner" placeholder="Search recovery..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold outline-none focus:border-emerald-400">
+                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
                 </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">

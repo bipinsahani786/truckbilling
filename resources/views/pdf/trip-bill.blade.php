@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Trip Settlement Ledger - T-{{ $trip->id }}</title>
+    <title>Trip Settlement Ledger - T-{{ $trip->trip_number }}</title>
     <style>
         @page { margin: 30px; }
         body { font-family: 'Helvetica', Arial, sans-serif; font-size: 11px; color: #334155; line-height: 1.5; margin: 0; }
@@ -16,7 +16,7 @@
         .info-table { width: 100%; margin-bottom: 20px; }
         .info-table td { padding: 5px 0; vertical-align: top; }
         .info-label { font-size: 9px; font-weight: bold; color: #94a3b8; text-transform: uppercase; display: block; }
-        .info-value { font-size: 12px; font-weight: bold; color: #1e293b; text-transform: uppercase; }
+        .info-value { font-size: 12px; font-weight: bold; color: #1e293b; text-tzransform: uppercase; }
 
         /* Dashboard Style Summary */
         .summary-box { width: 100%; background-color: #1e293b; margin-bottom: 25px; border-radius: 8px; overflow: hidden; }
@@ -79,7 +79,7 @@
         <tr>
             <td width="25%">
                 <span class="info-label">Trip ID</span>
-                <span class="info-value">T-{{ $trip->id }}</span>
+                <span class="info-value">T-{{ $trip->trip_number }}</span>
             </td>
             <td width="25%">
                 <span class="info-label">Truck Number</span>
@@ -100,20 +100,20 @@
         <tr>
             <td>
                 <span class="summary-label">Total Recovery</span>
-                <span class="summary-value val-green">RS {{ number_format($totalRev) }}</span>
+                <span class="summary-value val-green">₹ {{ number_format($totalRev) }}</span>
             </td>
             <td>
                 <span class="summary-label">Total Expenses</span>
-                <span class="summary-value val-red">RS {{ number_format($totalExp) }}</span>
+                <span class="summary-value val-red">₹ {{ number_format($totalExp) }}</span>
             </td>
             <td>
                 <span class="summary-label">Net Profit</span>
-                <span class="summary-value">RS {{ number_format($netProfit) }}</span>
+                <span class="summary-value">₹ {{ number_format($netProfit) }}</span>
             </td>
             <td>
                 <span class="summary-label">Driver Balance</span>
                 <span class="summary-value {{ $driverHisab >= 0 ? 'val-green' : 'val-red' }}">
-                    RS {{ number_format($driverHisab) }}
+                    ₹ {{ number_format($driverHisab) }}
                 </span>
             </td>
         </tr>
@@ -130,12 +130,12 @@
                     @foreach($driverExp as $ex)
                     <tr>
                         <td>{{ $ex->category->name ?? 'Expense' }}</td>
-                        <td class="text-right">RS {{ number_format($ex->amount) }}</td>
+                        <td class="text-right">₹ {{ number_format($ex->amount) }}</td>
                     </tr>
                     @endforeach
                     <tr class="font-bold">
                         <td class="text-right">Total:</td>
-                        <td class="text-right">RS {{ number_format($sDE) }}</td>
+                        <td class="text-right">₹ {{ number_format($sDE) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -151,12 +151,12 @@
                     @foreach($ownerExp as $ex)
                     <tr>
                         <td>{{ $ex->category->name ?? 'Owner Exp' }}</td>
-                        <td class="text-right">RS {{ number_format($ex->amount) }}</td>
+                        <td class="text-right">₹ {{ number_format($ex->amount) }}</td>
                     </tr>
                     @endforeach
                     <tr class="font-bold">
                         <td class="text-right">Total:</td>
-                        <td class="text-right">RS {{ number_format($sOE) }}</td>
+                        <td class="text-right">₹ {{ number_format($sOE) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -174,12 +174,12 @@
                     @foreach($driverRec as $rc)
                     <tr>
                         <td>{{ $rc->remarks ?: 'Trip Recovery' }}</td>
-                        <td class="text-right">RS {{ number_format($rc->amount) }}</td>
+                        <td class="text-right">₹ {{ number_format($rc->amount) }}</td>
                     </tr>
                     @endforeach
                     <tr class="font-bold">
                         <td class="text-right">Total:</td>
-                        <td class="text-right">RS {{ number_format($sDR) }}</td>
+                        <td class="text-right">₹ {{ number_format($sDR) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -195,12 +195,12 @@
                     @foreach($ownerRec as $rc)
                     <tr>
                         <td>{{ $rc->remarks ?: 'Bank Deposit' }}</td>
-                        <td class="text-right">RS {{ number_format($rc->amount) }}</td>
+                        <td class="text-right">₹ {{ number_format($rc->amount) }}</td>
                     </tr>
                     @endforeach
                     <tr class="font-bold">
                         <td class="text-right">Total:</td>
-                        <td class="text-right">RS {{ number_format($sOR) }}</td>
+                        <td class="text-right">₹ {{ number_format($sOR) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -225,9 +225,9 @@
                 <td class="font-bold">{{ strtoupper($bill->party_name) }}</td>
                 <td>{{ $bill->material_description }}</td>
                 <td>{{ $bill->weight_tons }} MT</td>
-                <td class="text-right font-bold">RS {{ number_format($bill->freight_amount) }}</td>
-                <td class="text-right">RS {{ number_format($bill->received_amount) }}</td>
-                <td class="text-right font-bold" style="color: #e11d48;">RS {{ number_format($bill->freight_amount - $bill->received_amount) }}</td>
+                <td class="text-right font-bold">₹ {{ number_format($bill->freight_amount) }}</td>
+                <td class="text-right">₹ {{ number_format($bill->received_amount) }}</td>
+                <td class="text-right font-bold" style="color: #e11d48;">₹ {{ number_format($bill->freight_amount - $bill->received_amount) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -237,10 +237,10 @@
         <table class="footer-table">
             <tr>
                 <td class="gen-date">
-                    Generated on: {{ date('d M Y, h:i A') }} | Trip ID: T-{{ $trip->id }}
+                    Generated on: {{ date('d M Y, h:i A') }} | Trip ID: T-{{ $trip->trip_number }}
                 </td>
                 <td class="branding">
-                    Designed & Developed by <strong>Zytrixon Tech</strong>
+                    Designed & Developed by <strong>JMD TRUCK MANAGEMENT</strong>
                 </td>
             </tr>
         </table>
