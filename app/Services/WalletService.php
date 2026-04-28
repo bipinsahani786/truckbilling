@@ -110,9 +110,10 @@ class WalletService
      * @param float  $amount          The transaction amount
      * @param int    $driverId        The driver whose wallet is affected
      * @param int    $tripId          The trip ID for the transaction description
+     * @param string|null $tripNumber Explicit trip number for description
      * @return void
      */
-    public function applyTripImpact(string $paymentMode, string $transactionType, float $amount, int $driverId, int $tripId): void
+    public function applyTripImpact(string $paymentMode, string $transactionType, float $amount, int $driverId, int $tripId, ?string $tripNumber = null): void
     {
         if ($paymentMode !== 'wallet') {
             return;
@@ -123,6 +124,8 @@ class WalletService
             return;
         }
 
+        $descPrefix = $tripNumber ? 'Trip T-' . $tripNumber : 'Trip ID ' . $tripId;
+
         if ($transactionType === 'expense') {
             // Expense: Deduct from wallet balance
             $wallet->balance -= $amount;
@@ -130,7 +133,7 @@ class WalletService
                 'wallet_id' => $wallet->id,
                 'type' => 'debit',
                 'amount' => $amount,
-                'description' => 'Trip Exp T-' . $tripId,
+                'description' => $descPrefix . ' Exp',
             ]);
         } else {
             // Recovery: Add to wallet balance
@@ -139,7 +142,7 @@ class WalletService
                 'wallet_id' => $wallet->id,
                 'type' => 'credit',
                 'amount' => $amount,
-                'description' => 'Trip Rec T-' . $tripId,
+                'description' => $descPrefix . ' Rec',
             ]);
         }
 
@@ -155,9 +158,10 @@ class WalletService
      * @param float  $amount          The transaction amount to reverse
      * @param int    $driverId        The driver whose wallet is affected
      * @param int    $tripId          The trip ID for the transaction description
+     * @param string|null $tripNumber Explicit trip number for description
      * @return void
      */
-    public function reverseTripImpact(string $paymentMode, string $transactionType, float $amount, int $driverId, int $tripId): void
+    public function reverseTripImpact(string $paymentMode, string $transactionType, float $amount, int $driverId, int $tripId, ?string $tripNumber = null): void
     {
         if ($paymentMode !== 'wallet') {
             return;
@@ -168,6 +172,8 @@ class WalletService
             return;
         }
 
+        $descPrefix = $tripNumber ? 'Reversed T-' . $tripNumber : 'Reversed ID ' . $tripId;
+
         if ($transactionType === 'expense') {
             // Reverse expense: Credit back to wallet
             $wallet->balance += $amount;
@@ -175,7 +181,7 @@ class WalletService
                 'wallet_id' => $wallet->id,
                 'type' => 'credit',
                 'amount' => $amount,
-                'description' => 'Reversed Exp T-' . $tripId,
+                'description' => $descPrefix . ' Exp',
             ]);
         } else {
             // Reverse recovery: Debit from wallet
@@ -184,7 +190,7 @@ class WalletService
                 'wallet_id' => $wallet->id,
                 'type' => 'debit',
                 'amount' => $amount,
-                'description' => 'Reversed Rec T-' . $tripId,
+                'description' => $descPrefix . ' Rec',
             ]);
         }
 

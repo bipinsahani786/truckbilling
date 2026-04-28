@@ -177,6 +177,14 @@
                     </div>
                     @error('party_freight_amount') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
                 </div>
+                <div>
+                    <label class="text-xs font-bold text-rose-600 uppercase">Initial Driver Advance (Kharchi)</label>
+                    <div class="relative mt-1">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                        <input type="number" wire:model="driver_advance" placeholder="0.00" class="w-full pl-8 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none">
+                    </div>
+                    @error('driver_advance') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
+                </div>
             </div>
 
             <button type="submit" wire:loading.attr="disabled" class="w-full py-4 bg-[#0A0A0A] hover:bg-slate-800 text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg transition-all">
@@ -537,7 +545,8 @@
                                 <!-- Category List -->
                                 <div class="max-h-60 overflow-y-auto p-1">
                                     @forelse($categories as $cat)
-                                        <div @click="selectedId = {{ $cat->id }}; open = false; search = ''" 
+                                        <div x-show="search === '' || '{{ strtolower($cat->name) }}'.includes(search.toLowerCase())"
+                                             @click="selectedId = {{ $cat->id }}; open = false; search = ''" 
                                              class="p-2.5 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors group flex items-center justify-between">
                                             <span class="text-sm font-bold text-slate-700 group-hover:text-indigo-700 uppercase">{{ $cat->name }}</span>
                                             <template x-if="selectedId == {{ $cat->id }}">
