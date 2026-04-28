@@ -116,11 +116,14 @@ class DashboardService
         // Profit is Revenue - Expenses
         $netProfit = $totalRevenue - $totalExpenses;
 
-        // Pending dues = Total Earnings - Actual Cash Recovered
+        // Total Received = Sum of all TripBilling received_amount + Sum of all Recovery transactions
+        $totalReceivedFromBilling = TripBilling::whereIn('trip_id', $tripIds)->sum('received_amount');
         $totalRecoveries = TripTransaction::whereIn('trip_id', $tripIds)
             ->where('transaction_type', 'recovery')
             ->sum('amount');
-        $pendingDues = max(0, $totalRevenue - $totalRecoveries);
+            
+        // Pending dues = Total Revenue - Total already received (from billing or driver/owner recoveries)
+        $pendingDues = max(0, $totalRevenue - ($totalReceivedFromBilling + $totalRecoveries));
 
         // --- Live Trip Feed (active/in-progress trips) ---
         $liveTripQuery = (clone $tripQuery)
@@ -145,11 +148,10 @@ class DashboardService
         foreach ($liveTrips as $trip) {
             $tripExp = TripTransaction::where('trip_id', $trip->id)
                 ->where('transaction_type', 'expense')->sum('amount');
-            $tripRec = TripTransaction::where('trip_id', $trip->id)
-                ->where('transaction_type', 'recovery')->sum('amount');
             $tripBillingFreight = TripBilling::where('trip_id', $trip->id)->sum('freight_amount');
+            $tripRev = ($tripBillingFreight > 0) ? $tripBillingFreight : ($trip->party_freight_amount ?? 0);
 
-            $trip->current_profit = ($tripBillingFreight + $tripRec) - $tripExp;
+            $trip->current_profit = $tripRev - $tripExp;
         }
 
         return [

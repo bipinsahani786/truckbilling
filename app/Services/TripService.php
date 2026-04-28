@@ -77,6 +77,7 @@ class TripService
                 'to_location' => strtoupper($data['to_location']),
                 'start_date' => $data['start_date'],
                 'party_freight_amount' => $data['party_freight_amount'],
+                'driver_advance' => $data['driver_advance'] ?? 0,
                 'status' => 'in_transit',
             ]);
 
@@ -87,6 +88,27 @@ class TripService
             $driver = User::find($data['driver_id']);
             if ($driver) {
                 $driver->notify(new \App\Notifications\NewTripNotification($trip));
+            }
+
+            // If an advance was provided, record it as a wallet transaction automatically
+            if (($data['driver_advance'] ?? 0) > 0) {
+                $txService = app(TripTransactionService::class);
+                
+                // Find or create a default "Initial Advance" category
+                $cat = ExpenseCategory::firstOrCreate(
+                    ['owner_id' => $ownerId, 'name' => 'INITIAL ADVANCE'],
+                    ['status' => 'active']
+                );
+
+                $txService->createOrUpdate([
+                    'trip_id' => $trip->id,
+                    'added_by' => Auth::id(),
+                    'transaction_type' => 'expense',
+                    'expense_category_id' => $cat->id,
+                    'amount' => $data['driver_advance'],
+                    'payment_mode' => 'wallet',
+                    'remarks' => 'Automatic deduction for trip advance',
+                ], null, $data['driver_id'], $trip->id);
             }
         });
 
@@ -122,6 +144,7 @@ class TripService
                 'to_location' => strtoupper($data['to_location']),
                 'start_date' => $data['start_date'],
                 'party_freight_amount' => $data['party_freight_amount'],
+                'driver_advance' => $data['driver_advance'] ?? 0,
             ]);
         });
 

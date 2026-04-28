@@ -44,7 +44,8 @@ class TripTransactionService
         DB::transaction(function () use ($data, $txId, $driverId, $tripId, &$tx) {
             if ($txId) {
                 // Update mode: first reverse the old wallet impact, then apply new values
-                $tx = TripTransaction::findOrFail($txId);
+                $tx = TripTransaction::with('trip')->findOrFail($txId);
+                $tripNumber = $tx->trip?->trip_number;
 
                 // Reverse the wallet effect of the original transaction
                 $this->walletService->reverseTripImpact(
@@ -52,7 +53,8 @@ class TripTransactionService
                     $tx->transaction_type,
                     $tx->amount,
                     $driverId,
-                    $tripId
+                    $tripId,
+                    $tripNumber
                 );
 
                 // Update the transaction record with new values
@@ -68,7 +70,8 @@ class TripTransactionService
                     $tx->transaction_type,
                     $data['amount'],
                     $driverId,
-                    $tripId
+                    $tripId,
+                    $tripNumber
                 );
             } else {
                 // Create mode: create the transaction and apply wallet impact
@@ -83,12 +86,14 @@ class TripTransactionService
                 ]);
 
                 // Apply the wallet effect for the new transaction
+                $trip = \App\Models\Trip::find($tripId);
                 $this->walletService->applyTripImpact(
                     $tx->payment_mode,
                     $tx->transaction_type,
                     $tx->amount,
                     $driverId,
-                    $tripId
+                    $tripId,
+                    $trip?->trip_number
                 );
             }
         });
@@ -107,7 +112,7 @@ class TripTransactionService
     public function delete(int $txId, int $driverId, int $tripId): void
     {
         DB::transaction(function () use ($txId, $driverId, $tripId) {
-            $tx = TripTransaction::findOrFail($txId);
+            $tx = TripTransaction::with('trip')->findOrFail($txId);
 
             // Reverse the wallet impact before deleting
             $this->walletService->reverseTripImpact(
@@ -115,7 +120,8 @@ class TripTransactionService
                 $tx->transaction_type,
                 $tx->amount,
                 $driverId,
-                $tripId
+                $tripId,
+                $tx->trip?->trip_number
             );
 
             $tx->delete();
