@@ -241,12 +241,6 @@
                     @endif
                 </div>
 
-                <div class="px-3 py-2 bg-rose-50/50 border-b border-rose-100">
-                    <div class="relative">
-                        <input type="text" wire:model.live.debounce.300ms="searchTxDriver" placeholder="Search expenses..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-rose-200 rounded-lg text-[10px] font-bold outline-none focus:border-rose-400">
-                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
                     @forelse($driverExp as $ex)
@@ -285,12 +279,6 @@
                     @endif
                 </div>
 
-                <div class="px-3 py-2 bg-rose-50/50 border-b border-rose-100">
-                    <div class="relative">
-                        <input type="text" wire:model.live.debounce.300ms="searchTxOwner" placeholder="Search expenses..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-rose-200 rounded-lg text-[10px] font-bold outline-none focus:border-rose-400">
-                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
                     @forelse($ownerExp as $ex)
@@ -333,12 +321,6 @@
                     @endif
                 </div>
 
-                <div class="px-3 py-2 bg-emerald-50/50 border-b border-emerald-100">
-                    <div class="relative">
-                        <input type="text" wire:model.live.debounce.300ms="searchRecDriver" placeholder="Search recovery..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold outline-none focus:border-emerald-400">
-                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
                     @forelse($driverRec as $rc)
@@ -376,12 +358,6 @@
                     @endif
                 </div>
 
-                <div class="px-3 py-2 bg-emerald-50/50 border-b border-emerald-100">
-                    <div class="relative">
-                        <input type="text" wire:model.live.debounce.300ms="searchRecOwner" placeholder="Search recovery..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold outline-none focus:border-emerald-400">
-                        <svg class="absolute left-2.5 top-2 w-3 h-3 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                </div>
                 
                 <div class="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-slate-50/50">
                     @forelse($ownerRec as $rc)
@@ -494,14 +470,73 @@
             </div>
             <form wire:submit.prevent="saveTransaction" class="p-5 space-y-5">
                 @if($tx_type == 'expense')
-                <div>
-                    <label class="text-sm font-bold text-slate-500 uppercase">Category *</label>
-                    <div class="flex gap-2 mt-1">
-                        <select wire:model="tx_category_id" required class="flex-1 p-3 border border-slate-200 rounded-lg text-sm font-bold outline-none">
-                            <option value="">Select</option>@foreach($categories as $cat) <option value="{{ $cat->id }}">{{ $cat->name }}</option> @endforeach
-                        </select>
-                        <button type="button" wire:click="$set('showCatModal', true)" class="px-4 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-lg">+ New</button>
+                <div x-data="{ 
+                    open: false, 
+                    search: @entangle('catSearch'),
+                    selectedId: @entangle('tx_category_id'),
+                    selectedName: '',
+                    init() {
+                        this.updateSelectedName();
+                        this.$watch('selectedId', () => this.updateSelectedName());
+                    },
+                    updateSelectedName() {
+                        const categories = @js($categories->toArray());
+                        const selected = categories.find(c => c.id == this.selectedId);
+                        this.selectedName = selected ? selected.name : 'Select Category';
+                    }
+                }" class="relative">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Category *</label>
+                    <div class="mt-1.5 flex gap-2">
+                        <div class="relative flex-1">
+                            <!-- Trigger Button / Search Input -->
+                            <div @click="open = !open" 
+                                 class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-bold flex justify-between items-center cursor-pointer hover:border-indigo-400 transition-all shadow-sm">
+                                <span x-text="selectedName" :class="selectedId ? 'text-slate-900' : 'text-slate-400'"></span>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" 
+                                 @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 class="absolute z-[120] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-100">
+                                
+                                <!-- Integrated Search Bar -->
+                                <div class="p-2 border-b border-slate-100 bg-slate-50/50">
+                                    <div class="relative flex items-center">
+                                        <svg class="absolute left-3 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        <input type="text" 
+                                               x-model="search"
+                                               x-ref="searchInput"
+                                               @focus="open = true"
+                                               placeholder="Type to search..." 
+                                               class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 shadow-sm transition-all">
+                                    </div>
+                                </div>
+
+                                <!-- Category List -->
+                                <div class="max-h-60 overflow-y-auto p-1">
+                                    @forelse($categories as $cat)
+                                        <div @click="selectedId = {{ $cat->id }}; open = false; search = ''" 
+                                             class="p-2.5 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors group flex items-center justify-between">
+                                            <span class="text-sm font-bold text-slate-700 group-hover:text-indigo-700 uppercase">{{ $cat->name }}</span>
+                                            <template x-if="selectedId == {{ $cat->id }}">
+                                                <svg class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                            </template>
+                                        </div>
+                                    @empty
+                                        <div class="p-4 text-center text-xs text-slate-400 italic">No categories found.</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" wire:click="$set('showCatModal', true)" class="px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-black rounded-xl uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm self-start">
+                            + New
+                        </button>
                     </div>
+                    @error('tx_category_id') <span class="text-[10px] text-rose-500 font-bold mt-1">{{ $message }}</span> @enderror
                 </div>
                 @endif
                 <div>

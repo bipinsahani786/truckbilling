@@ -42,11 +42,6 @@ class TripManagement extends Component
     /** @var string End date filter for trip listing */
     public $filter_to_date = '';
 
-    // --- Sub-list Search Properties (Manage View) ---
-    public $searchTxDriver = '';
-    public $searchTxOwner = '';
-    public $searchRecDriver = '';
-    public $searchRecOwner = '';
 
     // --- Create Trip Form Inputs ---
     /** @var string Selected vehicle ID for new trip */
@@ -143,6 +138,7 @@ class TripManagement extends Component
     public $showCatModal = false;
     /** @var string Name for the new expense category */
     public $new_cat_name = '';
+    public $catSearch = '';
 
     /**
      * Initialize component with default values.
@@ -248,35 +244,8 @@ class TripManagement extends Component
         $this->totalPartyReceived = $data['totalPartyReceived'];
         $this->partyDues = $data['partyDues'];
 
-        // --- Apply Sub-list Filtering ---
-        if (!empty($this->searchTxDriver)) {
-            $this->driverExp = $this->driverExp->filter(fn($ex) => 
-                stripos($ex->category->name ?? '', $this->searchTxDriver) !== false || 
-                stripos($ex->remarks ?? '', $this->searchTxDriver) !== false
-            );
-        }
-        if (!empty($this->searchTxOwner)) {
-            $this->ownerExp = $this->ownerExp->filter(fn($ex) => 
-                stripos($ex->category->name ?? '', $this->searchTxOwner) !== false || 
-                stripos($ex->remarks ?? '', $this->searchTxOwner) !== false
-            );
-        }
-        if (!empty($this->searchRecDriver)) {
-            $this->driverRec = $this->driverRec->filter(fn($rc) => 
-                stripos($rc->remarks ?? '', $this->searchRecDriver) !== false
-            );
-        }
-        if (!empty($this->searchRecOwner)) {
-            $this->ownerRec = $this->ownerRec->filter(fn($rc) => 
-                stripos($rc->remarks ?? '', $this->searchRecOwner) !== false
-            );
-        }
     }
 
-    public function updatedSearchTxDriver() { $this->loadTripData(); }
-    public function updatedSearchTxOwner() { $this->loadTripData(); }
-    public function updatedSearchRecDriver() { $this->loadTripData(); }
-    public function updatedSearchRecOwner() { $this->loadTripData(); }
 
     /**
      * Validate and create a new trip via the TripService.
@@ -442,6 +411,7 @@ class TripManagement extends Component
         $this->reset(['editingTxId', 'tx_category_id', 'tx_amount', 'tx_remarks']);
         $this->tx_type = $type;
         $this->tx_payment_mode = $mode;
+        $this->catSearch = '';
         $this->showTxModal = true;
     }
 
@@ -459,6 +429,7 @@ class TripManagement extends Component
         $this->tx_category_id = $tx->expense_category_id;
         $this->tx_amount = $tx->amount;
         $this->tx_remarks = $tx->remarks;
+        $this->catSearch = '';
         $this->showTxModal = true;
     }
 
@@ -541,11 +512,18 @@ class TripManagement extends Component
             $this->statusFilter
         );
 
+        $categories = $dropdowns['categories'];
+        if (!empty($this->catSearch)) {
+            $categories = $categories->filter(fn($c) => 
+                stripos($c->name, $this->catSearch) !== false
+            );
+        }
+
         return view('livewire.admin.trip-management', [
             'vehicles' => $dropdowns['vehicles'],
             'drivers' => $dropdowns['drivers'],
             'dealers' => $dropdowns['dealers'],
-            'categories' => $dropdowns['categories'],
+            'categories' => $categories,
             'trips' => $trips,
         ]);
     }

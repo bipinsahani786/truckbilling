@@ -199,16 +199,18 @@ class TripService
         // Driver's net position (positive = driver owes money, negative = owner owes driver)
         $driverHisab = $sumDriverRec - $sumDriverExp;
 
-        // Overall profit/loss calculation
-        $totalRevenue = $sumDriverRec + $sumOwnerRec;
-        $totalExpense = $sumDriverExp + $sumOwnerExp;
-        $netProfit = $totalRevenue - $totalExpense;
-
         // Load multi-party billing data
         $tripBillings = TripBilling::where('trip_id', $tripId)->get();
         $totalPartyFreight = $tripBillings->sum('freight_amount');
         $totalPartyReceived = $tripBillings->sum('received_amount');
         $partyDues = $totalPartyFreight - $totalPartyReceived;
+
+        // Overall profit/loss calculation
+        // Revenue is the total freight billed to parties
+        $totalRevenue = ($totalPartyFreight > 0) ? $totalPartyFreight : ($tripDetails->party_freight_amount ?? 0);
+        
+        $totalExpense = $sumDriverExp + $sumOwnerExp;
+        $netProfit = $totalRevenue - $totalExpense;
 
         return [
             'tripDetails' => $tripDetails,
@@ -323,11 +325,12 @@ class TripService
 
         $trips = $tripQuery->latest()->paginate(10);
 
-        // Calculate profit for each trip in the current page (recovery - expense)
+        // Calculate accurate profit for each trip (Total Freight - Total Expenses)
         foreach ($trips as $t) {
             $exp = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'expense')->sum('amount');
-            $rec = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'recovery')->sum('amount');
-            $t->calculated_profit = $rec - $exp;
+            $billingSum = TripBilling::where('trip_id', $t->id)->sum('freight_amount');
+            $rev = ($billingSum > 0) ? $billingSum : ($t->party_freight_amount ?? 0);
+            $t->calculated_profit = $rev - $exp;
         }
 
         return $trips;

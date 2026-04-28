@@ -5,7 +5,7 @@
     <title>Trip Settlement Ledger - T-{{ $trip->trip_number }}</title>
     <style>
         @page { margin: 30px; }
-        body { font-family: 'Helvetica', Arial, sans-serif; font-size: 11px; color: #334155; line-height: 1.5; margin: 0; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 10px; color: #334155; line-height: 1.4; margin: 0; }
         
         /* Header Section */
         .header-container { margin-bottom: 30px; border-bottom: 2px solid #1e293b; padding-bottom: 15px; }

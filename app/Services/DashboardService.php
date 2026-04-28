@@ -28,12 +28,25 @@ class DashboardService
      * @param int         $ownerId      The fleet owner's user ID
      * @param bool        $isDriver     Whether the current user is a driver
      * @param int|null    $driverId     The driver's user ID (for driver-specific filtering)
+    /**
+     * Get all dashboard analytics data based on applied filters.
+     *
+     * Calculates:
+     * - Fleet status (total vehicles, on-road vehicles, utilization percentage)
+     * - Revenue & profit metrics (total freight, recoveries, expenses, net profit, pending dues)
+     * - Live trip feed (last 5 active trips with current profit)
+     *
+     * @param int         $ownerId      The fleet owner's user ID
+     * @param bool        $isDriver     Whether the current user is a driver
+     * @param int|null    $driverId     The driver's user ID (for driver-specific filtering)
      * @param string|null $dateFrom     Start date filter (Y-m-d format)
      * @param string|null $dateTo       End date filter (Y-m-d format)
      * @param string|null $statusFilter Trip status filter
+     * @param int|null    $tripFrom     Start index for trip range filtering
+     * @param int|null    $tripTo       End index for trip range filtering
      * @return array Associative array with all dashboard metrics
      */
-    public function getDashboardData(int $ownerId, bool $isDriver, ?int $driverId = null, ?string $dateFrom = null, ?string $dateTo = null, ?string $statusFilter = null, ?string $search = null): array
+    public function getDashboardData(int $ownerId, bool $isDriver, ?int $driverId = null, ?string $dateFrom = null, ?string $dateTo = null, ?string $statusFilter = null, ?string $search = null, ?int $tripFrom = null, ?int $tripTo = null): array
     {
         // Build the base trip query with ownership and optional driver restriction
         $tripQuery = Trip::where('owner_id', $ownerId);
@@ -52,8 +65,19 @@ class DashboardService
             $tripQuery->where('status', $statusFilter);
         }
 
-        // Get all matching trip IDs for aggregate calculations
-        $tripIds = (clone $tripQuery)->pluck('id');
+        // Get all matching trips
+        $allMatchedTrips = $tripQuery->latest('start_date')->get();
+
+        // Apply trip range slicing if provided
+        if ($tripFrom !== null && $tripTo !== null) {
+            // Adjust to 0-based index if user provides 1-based
+            $start = max(0, $tripFrom - 1);
+            $length = max(1, ($tripTo - $tripFrom) + 1);
+            $allMatchedTrips = $allMatchedTrips->slice($start, $length);
+        }
+
+        // Get matching trip IDs for aggregate calculations
+        $tripIds = $allMatchedTrips->pluck('id');
 
         // --- Fleet Status (Owner Only) ---
         $totalVehicles = 0;
@@ -68,21 +92,45 @@ class DashboardService
         }
 
         // --- Revenue & Profit Calculation ---
-        $totalFreight = TripBilling::whereIn('trip_id', $tripIds)->sum('freight_amount');
+        
+        // Revenue is primarily the total freight amount billed to parties
+        $totalFreightFromBilling = TripBilling::whereIn('trip_id', $tripIds)->sum('freight_amount');
+        
+        // For trips that don't have detailed billing entries, check the main trip freight amount
+        $totalFreightFromTrips = (clone $tripQuery)
+            ->whereDoesntHave('transactions', function($q) {
+                // This is a rough way to check if billing exists, but let's be more direct
+            })
+            ->sum('party_freight_amount');
+            
+        // Better: Total Freight is sum of TripBilling for those that have it, 
+        // and party_freight_amount for those that don't have TripBilling entries.
+        $totalFreight = 0;
+        foreach ($allMatchedTrips as $trip) {
+            $billingSum = TripBilling::where('trip_id', $trip->id)->sum('freight_amount');
+            if ($billingSum > 0) {
+                $totalFreight += $billingSum;
+            } else {
+                $totalFreight += $trip->party_freight_amount ?? 0;
+            }
+        }
 
-        $totalRecoveries = TripTransaction::whereIn('trip_id', $tripIds)
-            ->where('transaction_type', 'recovery')
-            ->sum('amount');
-
+        // Expenses are all recorded expense transactions
         $totalExpenses = TripTransaction::whereIn('trip_id', $tripIds)
             ->where('transaction_type', 'expense')
             ->sum('amount');
 
-        $totalRevenue = $totalFreight + $totalRecoveries;
+        // Revenue on dashboard should reflect the actual earnings (Freight)
+        $totalRevenue = $totalFreight;
+        
+        // Profit is Revenue - Expenses
         $netProfit = $totalRevenue - $totalExpenses;
 
-        // Pending dues = freight billed minus amount actually recovered
-        $pendingDues = max(0, $totalFreight - $totalRecoveries);
+        // Pending dues = Total Earnings - Actual Cash Recovered
+        $totalRecoveries = TripTransaction::whereIn('trip_id', $tripIds)
+            ->where('transaction_type', 'recovery')
+            ->sum('amount');
+        $pendingDues = max(0, $totalRevenue - $totalRecoveries);
 
         // --- Live Trip Feed (active/in-progress trips) ---
         $liveTripQuery = (clone $tripQuery)
@@ -123,6 +171,7 @@ class DashboardService
             'onRoadVehicles' => $onRoadVehicles,
             'fleetPercentage' => $fleetPercentage,
             'liveTrips' => $liveTrips,
+            'actualTripCount' => count($allMatchedTrips),
         ];
     }
 
