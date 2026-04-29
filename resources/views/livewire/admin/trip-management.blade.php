@@ -164,28 +164,6 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Trip Start Date *</label>
-                    <input type="date" wire:model="start_date" required class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-emerald-600 uppercase">Party Freight Amount (Revenue) *</label>
-                    <div class="relative mt-1">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
-                        <input type="number" wire:model="party_freight_amount" required placeholder="0.00" class="w-full pl-8 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none">
-                    </div>
-                    @error('party_freight_amount') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-rose-600 uppercase">Initial Driver Advance (Kharchi)</label>
-                    <div class="relative mt-1">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
-                        <input type="number" wire:model="driver_advance" placeholder="0.00" class="w-full pl-8 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none">
-                    </div>
-                    @error('driver_advance') <span class="text-rose-500 text-[10px] font-bold">{{ $message }}</span> @enderror
-                </div>
-            </div>
 
             <button type="submit" wire:loading.attr="disabled" class="w-full py-4 bg-[#0A0A0A] hover:bg-slate-800 text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg transition-all">
                 {{ $editingTripId ? 'Update Trip Details' : 'Dispatch Trip' }}

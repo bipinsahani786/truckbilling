@@ -40,7 +40,7 @@ class Trip extends Model
     protected $fillable = [
         'owner_id', 'trip_number', 'driver_id', 'vehicle_id', 'dealer_id',
         'from_location', 'to_location', 'material_description', 'weight_tons',
-        'party_freight_amount', 'driver_advance', 'status', 'pod_status',
+        'status', 'pod_status',
         'pod_document_path', 'start_date', 'end_date',
     ];
 

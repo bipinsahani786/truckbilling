@@ -70,10 +70,7 @@ class DealerManagement extends Component
         // Auto-fill PAN from GSTIN (GSTIN characters 3 to 12 represent the PAN)
         if (strlen($this->gstin) >= 12) {
             $extractedPan = substr($this->gstin, 2, 10);
-            // Basic check if it looks like a PAN (5 letters + 4 digits + 1 letter)
-            if (preg_match('/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/', $extractedPan)) {
-                $this->pan_number = $extractedPan;
-            }
+            $this->pan_number = $extractedPan;
         }
     }
 
@@ -90,8 +87,8 @@ class DealerManagement extends Component
     {
         // Build validation rules with GSTIN and PAN regex patterns
         // Relaxed regex to ensure "it just works" for various GSTIN formats while maintaining 15 chars
-        $uniqueGstin =  'nullable|string|size:15|regex:/^[0-9]{2}[A-Z0-9]{13}$/i|unique:dealers,gstin';
-        $uniquePan = 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i|unique:dealers,pan_number';
+        $uniqueGstin =  'nullable|string|unique:dealers,gstin';
+        $uniquePan = 'nullable|string|unique:dealers,pan_number';
         $uniquePhone = 'nullable|string|max:15';
         $uniqueEmail = 'nullable|email';
 
@@ -107,7 +104,7 @@ class DealerManagement extends Component
             'email' => $uniqueEmail,
             'gstin' => $uniqueGstin,
             'pan_number' => $uniquePan,
-            'pincode' => 'nullable|digits:6',
+            'pincode' => 'nullable|string',
         ]);
 
         try {

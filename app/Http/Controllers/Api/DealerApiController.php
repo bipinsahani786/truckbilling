@@ -82,8 +82,8 @@ class DealerApiController extends BaseController
             'contact_person_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'gstin' => 'nullable|string|max:15|unique:dealers',
-            'pan_number' => 'nullable|string|max:10|unique:dealers',
+            'gstin' => 'nullable|string|unique:dealers',
+            'pan_number' => 'nullable|string|unique:dealers',
             'address' => 'nullable|string|max:500',
         ]);
 
@@ -166,8 +166,8 @@ class DealerApiController extends BaseController
             'contact_person_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'gstin' => 'nullable|string|max:15|unique:dealers,gstin,' . $id,
-            'pan_number' => 'nullable|string|max:10|unique:dealers,pan_number,' . $id,
+            'gstin' => 'nullable|string|unique:dealers,gstin,' . $id,
+            'pan_number' => 'nullable|string|unique:dealers,pan_number,' . $id,
             'address' => 'nullable|string|max:500',
         ]);
 
