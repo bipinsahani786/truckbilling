@@ -194,74 +194,7 @@
         </div>
     </div>
 
-    <!-- Premium Trip Analysis Section -->
-    <div class="bg-[#0F172A] p-4 lg:p-4 rounded-3xl shadow-2xl relative overflow-hidden border border-slate-800/50 group">
-        <!-- Animated Background Effects -->
-        <div class="absolute -right-16 -top-16 w-48 h-48 bg-indigo-600/10 rounded-full blur-[80px] group-hover:bg-indigo-600/20 transition-all duration-700"></div>
-        <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-emerald-600/5 rounded-full blur-[80px]"></div>
-        
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            <!-- Title Section -->
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500/20 to-slate-800/50 rounded-2xl flex items-center justify-center border border-indigo-500/20 shadow-inner group-hover:border-indigo-500/40 transition-all">
-                    <svg class="w-6 h-6 text-indigo-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-base font-black text-white uppercase tracking-tight leading-none mb-1">Batch Analysis</h3>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-80">Trip Performance Analytics</p>
-                </div>
-            </div>
 
-            <!-- Controls & Results Container -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <!-- Input Group -->
-                <div class="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 shadow-inner">
-                    <div class="flex items-center px-3 py-2 bg-slate-950/50 rounded-xl border border-slate-800/50 focus-within:border-indigo-500/50 transition-all">
-                        <span class="text-[8px] font-black text-slate-600 uppercase mr-3">From</span>
-                        <input type="number" wire:model="trip_from" placeholder="0" class="bg-transparent text-sm font-black text-white w-12 outline-none placeholder:text-slate-800">
-                    </div>
-                    <div class="flex items-center px-3 py-2 bg-slate-950/50 rounded-xl border border-slate-800/50 focus-within:border-indigo-500/50 transition-all">
-                        <span class="text-[8px] font-black text-slate-600 uppercase mr-3">To</span>
-                        <input type="number" wire:model="trip_to" placeholder="0" class="bg-transparent text-sm font-black text-white w-12 outline-none placeholder:text-slate-800">
-                    </div>
-                    <button wire:click="$refresh" wire:loading.attr="disabled" class="relative overflow-hidden bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-indigo-500/10 active:scale-95 disabled:opacity-70 group/btn">
-                        <span wire:loading.remove wire:target="$refresh">Run Analysis</span>
-                        <span wire:loading wire:target="$refresh" class="flex items-center gap-2">
-                            <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            Processing
-                        </span>
-                    </button>
-                </div>
-
-                <!-- Results Badge -->
-                @if($trip_from && $trip_to)
-                <div class="flex items-center gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-2.5 animate-in slide-in-from-right-10 duration-500 shadow-2xl relative">
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-1.5 mb-0.5">
-                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                            <span class="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">Profit</span>
-                        </div>
-                        <span class="text-sm font-black text-emerald-400">₹{{ number_format($netProfit) }}</span>
-                    </div>
-                    
-                    <div class="w-px h-8 bg-slate-800"></div>
-                    
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-1.5 mb-0.5">
-                            <div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></div>
-                            <span class="text-[9px] font-black text-rose-500/80 uppercase tracking-widest">Expenses</span>
-                        </div>
-                        <span class="text-sm font-black text-rose-400">₹{{ number_format($totalExpenses) }}</span>
-                    </div>
-
-                    <button wire:click="resetFilters" class="ml-2 p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-rose-400 transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-                @endif
-            </div>
-        </div>
-    </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
