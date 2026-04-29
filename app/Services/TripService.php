@@ -207,12 +207,10 @@ class TripService
         $partyDues = $totalPartyFreight - $totalPartyReceived;
 
         // Overall profit/loss calculation
-        // Revenue is the total freight billed to parties
-        $totalRevenue = $totalPartyFreight;
-        
+            // Overall profit/loss calculation
+        $totalRevenue = $sumDriverRec + $sumOwnerRec;
         $totalExpense = $sumDriverExp + $sumOwnerExp;
         $netProfit = $totalRevenue - $totalExpense;
-
         return [
             'tripDetails' => $tripDetails,
             'driverWalletBalance' => $driverWalletBalance,
@@ -329,7 +327,7 @@ class TripService
         // Calculate accurate profit for each trip (Total Freight - Total Expenses)
         foreach ($trips as $t) {
             $exp = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'expense')->sum('amount');
-            $billingSum = TripBilling::where('trip_id', $t->id)->sum('freight_amount');
+            $billingSum = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'recovery')->sum('amount');
             $rev = $billingSum;
             $t->calculated_profit = $rev - $exp;
         }
