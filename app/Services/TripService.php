@@ -76,8 +76,6 @@ class TripService
                 'from_location' => strtoupper($data['from_location']),
                 'to_location' => strtoupper($data['to_location']),
                 'start_date' => $data['start_date'],
-                'party_freight_amount' => $data['party_freight_amount'],
-                'driver_advance' => $data['driver_advance'] ?? 0,
                 'status' => 'in_transit',
             ]);
 
@@ -90,26 +88,6 @@ class TripService
                 $driver->notify(new \App\Notifications\NewTripNotification($trip));
             }
 
-            // If an advance was provided, record it as a wallet transaction automatically
-            if (($data['driver_advance'] ?? 0) > 0) {
-                $txService = app(TripTransactionService::class);
-                
-                // Find or create a default "Initial Advance" category
-                $cat = ExpenseCategory::firstOrCreate(
-                    ['owner_id' => $ownerId, 'name' => 'INITIAL ADVANCE'],
-                    ['status' => 'active']
-                );
-
-                $txService->createOrUpdate([
-                    'trip_id' => $trip->id,
-                    'added_by' => Auth::id(),
-                    'transaction_type' => 'expense',
-                    'expense_category_id' => $cat->id,
-                    'amount' => $data['driver_advance'],
-                    'payment_mode' => 'wallet',
-                    'remarks' => 'Automatic deduction for trip advance',
-                ], null, $data['driver_id'], $trip->id);
-            }
         });
 
         return $trip;
@@ -143,8 +121,6 @@ class TripService
                 'from_location' => strtoupper($data['from_location']),
                 'to_location' => strtoupper($data['to_location']),
                 'start_date' => $data['start_date'],
-                'party_freight_amount' => $data['party_freight_amount'],
-                'driver_advance' => $data['driver_advance'] ?? 0,
             ]);
         });
 
@@ -232,7 +208,7 @@ class TripService
 
         // Overall profit/loss calculation
         // Revenue is the total freight billed to parties
-        $totalRevenue = ($totalPartyFreight > 0) ? $totalPartyFreight : ($tripDetails->party_freight_amount ?? 0);
+        $totalRevenue = $totalPartyFreight;
         
         $totalExpense = $sumDriverExp + $sumOwnerExp;
         $netProfit = $totalRevenue - $totalExpense;
@@ -354,7 +330,7 @@ class TripService
         foreach ($trips as $t) {
             $exp = TripTransaction::where('trip_id', $t->id)->where('transaction_type', 'expense')->sum('amount');
             $billingSum = TripBilling::where('trip_id', $t->id)->sum('freight_amount');
-            $rev = ($billingSum > 0) ? $billingSum : ($t->party_freight_amount ?? 0);
+            $rev = $billingSum;
             $t->calculated_profit = $rev - $exp;
         }
 

@@ -54,27 +54,30 @@ class DashboardService
             $tripQuery->where('driver_id', $driverId);
         }
 
-        // Apply date range and status filters
-        if ($dateFrom) {
-            $tripQuery->whereDate('start_date', '>=', $dateFrom);
+        // If trip range is provided, we filter by trip_number and ignore the date filter
+        if ($tripFrom !== null && $tripTo !== null) {
+            $tripQuery = Trip::where('owner_id', $ownerId)
+                ->whereBetween('trip_number', [$tripFrom, $tripTo]);
+            
+            if ($isDriver) {
+                $tripQuery->where('driver_id', $driverId);
+            }
+        } else {
+            // Otherwise apply date range and status filters
+            if ($dateFrom) {
+                $tripQuery->whereDate('start_date', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $tripQuery->whereDate('start_date', '<=', $dateTo);
+            }
         }
-        if ($dateTo) {
-            $tripQuery->whereDate('start_date', '<=', $dateTo);
-        }
+
         if ($statusFilter) {
             $tripQuery->where('status', $statusFilter);
         }
 
         // Get all matching trips
-        $allMatchedTrips = $tripQuery->latest('start_date')->get();
-
-        // Apply trip range slicing if provided
-        if ($tripFrom !== null && $tripTo !== null) {
-            // Adjust to 0-based index if user provides 1-based
-            $start = max(0, $tripFrom - 1);
-            $length = max(1, ($tripTo - $tripFrom) + 1);
-            $allMatchedTrips = $allMatchedTrips->slice($start, $length);
-        }
+        $allMatchedTrips = $tripQuery->orderBy('trip_number', 'asc')->get();
 
         // Get matching trip IDs for aggregate calculations
         $tripIds = $allMatchedTrips->pluck('id');
@@ -97,12 +100,7 @@ class DashboardService
         // and party_freight_amount for those that don't have TripBilling entries.
         $totalFreight = 0;
         foreach ($allMatchedTrips as $trip) {
-            $billingSum = TripBilling::where('trip_id', $trip->id)->sum('freight_amount');
-            if ($billingSum > 0) {
-                $totalFreight += $billingSum;
-            } else {
-                $totalFreight += $trip->party_freight_amount ?? 0;
-            }
+            $totalFreight += TripBilling::where('trip_id', $trip->id)->sum('freight_amount');
         }
 
         // Expenses are all recorded expense transactions
@@ -149,7 +147,7 @@ class DashboardService
             $tripExp = TripTransaction::where('trip_id', $trip->id)
                 ->where('transaction_type', 'expense')->sum('amount');
             $tripBillingFreight = TripBilling::where('trip_id', $trip->id)->sum('freight_amount');
-            $tripRev = ($tripBillingFreight > 0) ? $tripBillingFreight : ($trip->party_freight_amount ?? 0);
+            $tripRev = TripBilling::where('trip_id', $trip->id)->sum('freight_amount');
 
             $trip->current_profit = $tripRev - $tripExp;
         }
