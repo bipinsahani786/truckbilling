@@ -107,18 +107,19 @@ class DashboardService
         $totalExpenses = TripTransaction::whereIn('trip_id', $tripIds)
             ->where('transaction_type', 'expense')
             ->sum('amount');
-
-        // Revenue on dashboard should reflect the actual earnings (Freight)
-        $totalRevenue = $totalFreight;
-        
-        // Profit is Revenue - Expenses
-        $netProfit = $totalRevenue - $totalExpenses;
-
-        // Total Received = Sum of all TripBilling received_amount + Sum of all Recovery transactions
+             // Total Received = Sum of all TripBilling received_amount + Sum of all Recovery transactions
         $totalReceivedFromBilling = TripBilling::whereIn('trip_id', $tripIds)->sum('received_amount');
         $totalRecoveries = TripTransaction::whereIn('trip_id', $tripIds)
             ->where('transaction_type', 'recovery')
             ->sum('amount');
+
+        // Revenue on dashboard should reflect the actual earnings (Freight)
+        $totalRevenue =$totalRecoveries;
+        
+        // Profit is Revenue - Expenses
+        $netProfit = $totalRevenue - $totalExpenses;
+
+       
             
         // Pending dues = Total Revenue - Total already received (from billing or driver/owner recoveries)
         $pendingDues = max(0, $totalRevenue - ($totalReceivedFromBilling + $totalRecoveries));
